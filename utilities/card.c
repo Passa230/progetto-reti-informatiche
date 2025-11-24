@@ -1,4 +1,5 @@
 #include "generic.c"
+#include <time.h>
 
 // Definizione della card 
 struct {
@@ -22,6 +23,8 @@ struct {
      * si potrebbe usare una struttura apposita con dei campi int e una funzione che permette
      * di formattare la data e l'ora in questo formato.
      */
+
+    time_t ultimo_aggiornamento;
     
 } card; 
 
