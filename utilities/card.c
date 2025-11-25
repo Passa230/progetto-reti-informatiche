@@ -1,26 +1,8 @@
 
 // TODO: Creare il file generic.h e importare quello
-#include "generic.c"
+#include <generic.h>
 #include <time.h>
 #include <stdint.h>
-
-
-// è necessario accederla in mutua esclusione
-unsigned int NEXT_CARD_ID = 0;
-// TODO: semaforo per la mutua esclusione.
-
-int get_new_id(){
-    // TODO: prendere un semaforo per incrementare il next_id_card;
-    return 0;
-}
-
-//------------------------------------------------------------------
-// ----------- GESTIONE DELL'IDENTIFICATIVO DELLA CARD -------------
-/* 
-La card può essere gestita anche usando un uuid, attraverso la libre
-ria <uuid.h>
-*/
-//------------------------------------------------------------------
 
 
 /**
