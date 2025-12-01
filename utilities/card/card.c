@@ -1,41 +1,7 @@
-
-// TODO: Creare il file generic.h e importare quello
 #include <generic.h>
 #include <time.h>
 #include <stdint.h>
-
-
-/**
- * @struct card
- * @brief Struttura che rappresenta una card del sistema Kanban.
- *
- * La struttura contiene tutte le informazioni necessarie per gestire
- * una card, inclusi identificatore, stato, descrizione e metadati
- * relativi agli utenti e alle modifiche.
- */
-struct card {
-    // @brief identificatore univoco della card
-    int id;
-
-    // @brief rappresenta lo stato della card, intesto come la fase (tra ToDo, Doing e Done) in cui si trova
-    colonna_t colonna;
-
-    // @brief rappresenta la descrizione dell'attività che deve essere portata a termine
-    char* testo_attivita;
-
-    // @brief numero di porta del socket relativo all'utente creatore della card
-    uint16_t utente_creatore;
-
-    // @brief numero di porta del socket relativo all'utente che deve portare a termine la card
-    uint16_t utente_assegnatario;
-
-    // @brief istante dell'ultimo aggiornamento della card.
-    time_t ultimo_aggiornamento;
-    
-}; 
-
-// Ridefinizione del tipo stuct card così da semplificarne la scrittura
-typedef struct card card_t;
+#include <structure.h>
 
 
 /***
@@ -53,7 +19,8 @@ card_t * card_create(const char* testo_attivita, uint16_t utente_creatore) {
     nuova_card->colonna = TO_DO;
     nuova_card->testo_attivita = strdup(testo_attivita);
     nuova_card->utente_creatore = utente_creatore;
-    nuova_card->utente_assegnatario = NULL;
+    nuova_card->utente_assegnatario = 0;
+    nuova_card->next_card = NULL;
     nuova_card->ultimo_aggiornamento = time(NULL);
     return nuova_card;
 }
@@ -64,13 +31,17 @@ card_t * card_create(const char* testo_attivita, uint16_t utente_creatore) {
  * @param card la card che deve essere eliminata
  * @return 0 se è andato tutto bene, un codice di errore altrimenti
  */
-int card_delete(card_t** card){
-    if (*card == NULL) {
-        printf("ERRORE: Non puoi passare un puntatore a null");
+bool_t card_delete(card_t** card){
+    if (card == NULL || *card == NULL) {
+        printf("ERRORE: La card non può essere nulla\n");
+        return FALSE;
     }
-    int signal = free(*card);
+    if ((*card)->testo_attivita != NULL) {
+        free((*card)->testo_attivita);
+    }
+    free(*card);
     *card = NULL;
-    return signal;
+    return TRUE;
 }
 
 
@@ -96,6 +67,11 @@ bool_t card_state_change(card_t* card, colonna_t new_state){
     card->colonna = new_state;
     return TRUE;    
 }
+
+
+
+
+
 
 
 
