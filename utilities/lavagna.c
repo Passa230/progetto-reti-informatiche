@@ -1,5 +1,7 @@
 #include <pthread.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include <generic.h>
 #include <structure.h>
 #include <card.h>
@@ -19,11 +21,12 @@ bool_t lavagna_init(){
     }
 
     lavagna.connected_users = 0;
+    return TRUE;
 }
 
 
 
-void lavagna_move_card(card_t* card, colonna_t col){
+void lavagna_move_card_to_head_to_head(card_t* card, colonna_t col){
     pthread_mutex_lock(&lavagna.sem_cards[col]);
     card_t* tmp = lavagna.cards[col];
     lavagna.cards[col] = card;
@@ -52,7 +55,7 @@ bool_t lavagna_card_add(const char* testo_attivita, uint16_t utente_creatore){
 
     card_t* card = card_create(testo_attivita, utente_creatore);
 
-    lavagna_move_card(card, 0);
+    lavagna_move_card_to_head(card, 0);
     return TRUE;  
 }
 
@@ -75,20 +78,18 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
         return NULL;
     }
     
-    card_t* queue = lavagna.cards[list];
-
+    card_t* curr = lavagna.cards[list];
     card_t* prev = NULL;
-    card_t* curr = queue;
     while (curr != NULL) {
         if (curr->id == id) {
             if (prev == NULL) {
                 // rimozione della testa della lista
-                queue = curr->next_card;
+                lavagna.cards[list] = curr->next_card;
             } else {
                 prev->next_card = curr->next_card;
             }
             //card_delete(&curr);
-            return &curr;
+            return curr;
         }
         prev = curr;
         curr = curr->next_card;
@@ -110,6 +111,66 @@ void lavagna_card_change(id_t id, id_t src, id_t dest){
     
     card_t* card = lavagna_card_remove(id, src);
     card_state_change(card, dest);    
-    lavagna_move_card(card, dest);
+    lavagna_move_card_to_head(card, dest);
 
+}
+
+
+void lavagna_stampa(){
+    printf("\n%-30s | %-30s | %-30s\n", "TO DO", "DOING", "DONE");
+    printf("-------------------------------+--------------------------------+------------------------------\n");
+
+    card_t* curr[3];
+    for(int i=0; i<3; i++) curr[i] = lavagna.cards[i];
+
+    while(curr[0] != NULL || curr[1] != NULL || curr[2] != NULL) {
+        // Print IDs
+        for(int i=0; i<3; i++) {
+            if(curr[i] != NULL) {
+                printf("ID: %-26d", curr[i]->id);
+            } else {
+                printf("%-30s", "");
+            }
+            if(i < 2) printf(" | ");
+        }
+        printf("\n");
+
+        // Print Descriptions
+        for(int i=0; i<3; i++) {
+            if(curr[i] != NULL) {
+                char buffer[27];
+                const char* text = curr[i]->testo_attivita ? curr[i]->testo_attivita : "";
+                strncpy(buffer, text, 26);
+                buffer[26] = '\0';
+                if(strlen(text) > 26) {
+                    buffer[23] = '.'; buffer[24] = '.'; buffer[25] = '.';
+                }
+                printf("%-30s", buffer);
+            } else {
+                printf("%-30s", "");
+            }
+            if(i < 2) printf(" | ");
+        }
+        printf("\n");
+        
+        printf("-------------------------------+--------------------------------+------------------------------\n");
+
+        // Advance pointers
+        for(int i=0; i<3; i++) {
+            if(curr[i] != NULL) curr[i] = curr[i]->next_card;
+        }
+    }
+}
+
+
+int main(){
+    int n_card = 3;
+
+    lavagna_init();
+
+    for (int i = 0; i < n_card; i++) {
+        lavagna_card_add("Hello word", 10);
+    }
+    
+    lavagna_stampa();
 }
