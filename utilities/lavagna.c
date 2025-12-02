@@ -26,12 +26,12 @@ bool_t lavagna_init(){
 
 
 
-void lavagna_move_card_to_head_to_head(card_t* card, colonna_t col){
+void lavagna_move_card_to_head(card_t* card, colonna_t col){
     pthread_mutex_lock(&lavagna.sem_cards[col]);
     card_t* tmp = lavagna.cards[col];
     lavagna.cards[col] = card;
     card->next_card = tmp;
-    pthread_mutex_unlock(&lavagna.sem_cards[0]);
+    pthread_mutex_unlock(&lavagna.sem_cards[col]);
 }
 
 
