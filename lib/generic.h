@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 #define MAX_COLUMN 3
+#define MAX_USER 100
 
 // Gestione dei booleani
 #define TRUE    0
@@ -24,5 +25,7 @@ extern unsigned int NEXT_CARD_ID;
 extern pthread_mutex_t semaforo_ID;
 typedef unsigned int id_t;
 id_t get_new_id(void);
+
+
 
 #endif /* GENERIC_H */

@@ -1,7 +1,7 @@
+#include <structure.h>
 #include <generic.h>
 #include <time.h>
 #include <stdint.h>
-#include <structure.h>
 
 
 /***

@@ -32,7 +32,7 @@ struct card {
     time_t ultimo_aggiornamento;
     
     // @brief implementazione della lista di card
-    card_t* next_card;
+    struct card* next_card;
 }; 
 
 typedef struct card card_t;
@@ -62,6 +62,11 @@ struct lavagna{
 
     // @brief contatore per gli utenti attualmente connessi
     int connected_users;
+    pthread_mutex_t conn_user_sem;
+
+    // @brief vettore che contiene gli utenti che sono attualmente iscritti alla lavagna
+    uint16_t utenti_registrati[MAX_USER];
+    pthread_mutex_t reg_user_sem;
 };
 
 typedef struct lavagna lavagna_t;

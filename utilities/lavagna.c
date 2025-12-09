@@ -1,9 +1,9 @@
 #include <pthread.h>
+#include <structure.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <generic.h>
-#include <structure.h>
 #include <card.h>
 
 
@@ -20,7 +20,11 @@ bool_t lavagna_init(){
         pthread_mutex_init(&lavagna.sem_cards[i], NULL);
     }
 
+    pthread_mutex_init(&lavagna.conn_user_sem);
     lavagna.connected_users = 0;
+
+    pthread_mutex_init(&lavagna.reg_user_sem);
+    memset(lavagna.utenti_registrati, 0, MAX_USER);
     return TRUE;
 }
 
@@ -48,10 +52,6 @@ bool_t lavagna_card_add(const char* testo_attivita, uint16_t utente_creatore){
         printf("ERRORE: Il testo deve contenere qualcosa\n");
         return FALSE;
     }
-
-    /**
-     * Possibilità: aggiungere un controllo ulteriore anche sull'ID della card
-     */
 
     card_t* card = card_create(testo_attivita, utente_creatore);
 
@@ -163,6 +163,55 @@ void lavagna_stampa(){
 }
 
 
+/**
+ * TODO: Controllare che l'utente sia registrato o non lo sia prima delle due
+ * operazioni
+*/
+bool_t hello(uint16_t port){
+    pthread_mutex_lock(&lavagna.conn_user_sem);
+    if (lavagna.connected_users == MAX_USER) return FALSE;
+    // VALUTARE SE FAR ATTENDERE IL TRHEAD 
+    // O RIFIUTARE LA REGISTRAZIONE
+    
+    lavagna.connected_users++;
+    pthread_mutex_unlock(&lavagna.conn_user_sem);
+    
+    pthread_mutex_lock(&lavagna.reg_user_sem);
+    for (int i = 0; i < MAX_USER; i++) {
+        if (lavagna.utenti_registrati[i] == 0) {
+            lavagna.utenti_registrati[i] = port;
+            pthread_mutex_unlock(&lavagna.conn_user_sem);
+            return TRUE;
+        }
+    }
+
+    // IDEALMENTE NON SERVE, MA NON SI SA MAI
+    pthread_mutex_unlock(&lavagna.conn_user_sem);   
+}
+
+bool_t quit(uint16_t port){
+    pthread_mutex_lock(&lavagna.conn_user_sem);
+    lavagna.connected_users--;
+    pthread_mutex_unlock(&lavagna.conn_user_sem);
+
+    pthread_mutex_lock(&lavagna.reg_user_sem);
+    for (int i = 0; i < MAX_USER; i++) {
+        if (lavagna.utenti_registrati[i] == port) {
+            lavagna.utenti_registrati[i] = 0;
+            pthread_mutex_unlock(&lavagna.conn_user_sem);
+            return TRUE;
+        }
+    }
+
+    // IDEALMENTE NON SERVE, MA NON SI SA MAI
+    pthread_mutex_unlock(&lavagna.conn_user_sem);  
+
+}
+
+
+
+
+
 int main(){
     int n_card = 3;
 
@@ -174,3 +223,4 @@ int main(){
     
     lavagna_stampa();
 }
+

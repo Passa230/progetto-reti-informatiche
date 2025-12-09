@@ -1,15 +1,24 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Icard -Ilib
-OBJ = lavagna.o card/card.o lib/generic.o
+CFLAGS = -Wall -Wextra -Ilib -Iutilities -Iutilities/card
+
+OBJ = utilities/lavagna.o \
+      utilities/card/card.o \
+      lib/generic.o
+
 TARGET = lavagna
 
-lavagna.o: lavagna.c card/card.h lib/generic.h lib/structure.h
-	$(CC) $(CFLAGS) -c lavagna.c -o lavagna.o
+all: $(TARGET)
 
-card/card.o: card/card.c card/card.h
-	$(CC) $(CFLAGS) -c card/card.c -o card/card.o
+$(TARGET): $(OBJ)
+	$(CC) $(OBJ) -o $(TARGET)
 
-lib/generic.o: lib/generic.c lib/generic.h
+utilities/lavagna.o: utilities/lavagna.c utilities/card/card.h lib/generic.h lib/structure.h
+	$(CC) $(CFLAGS) -c utilities/lavagna.c -o utilities/lavagna.o
+
+utilities/card/card.o: utilities/card/card.c utilities/card/card.h
+	$(CC) $(CFLAGS) -c utilities/card/card.c -o utilities/card/card.o
+
+lib/generic.o: lib/generic.c lib/generic.h lib/structure.h
 	$(CC) $(CFLAGS) -c lib/generic.c -o lib/generic.o
 
 clean:
