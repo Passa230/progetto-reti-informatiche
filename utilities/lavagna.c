@@ -20,10 +20,10 @@ bool_t lavagna_init(){
         pthread_mutex_init(&lavagna.sem_cards[i], NULL);
     }
 
-    pthread_mutex_init(&lavagna.conn_user_sem);
+    pthread_mutex_init(&lavagna.conn_user_sem, NULL);
     lavagna.connected_users = 0;
 
-    pthread_mutex_init(&lavagna.reg_user_sem);
+    pthread_mutex_init(&lavagna.reg_user_sem, NULL);
     memset(lavagna.utenti_registrati, 0, MAX_USER);
     return TRUE;
 }
@@ -45,7 +45,7 @@ void lavagna_move_card_to_head(card_t* card, colonna_t col){
  * @param testo_attivita descrive l'attività relativa alla card.
  * @param utente_creatore utente che ha creato la card.
  *  
- * @return ritorna 0 in caso di successo, ritorna 0 in caso di errore.
+ * @return ritorna 0 in caso di successo, ritorna 1 in caso di errore.
  */
 bool_t lavagna_card_add(const char* testo_attivita, uint16_t utente_creatore){
     if (testo_attivita == NULL) {
@@ -164,48 +164,69 @@ void lavagna_stampa(){
 
 
 /**
- * TODO: Controllare che l'utente sia registrato o non lo sia prima delle due
- * operazioni
+ * @brief Funzione che permette all'utente di registrarsi alla lavagna
+ * 
+ * @param port la porta del socket su cui l'utente vuole registrarsi
+ * @return ritorna 0 in caso di successo, ritorna 1 in caso di errore.
 */
 bool_t hello(uint16_t port){
+    // la funzione prende entrambi il lock sul semaforo per gli utenti connessi
     pthread_mutex_lock(&lavagna.conn_user_sem);
-    if (lavagna.connected_users == MAX_USER) return FALSE;
-    // VALUTARE SE FAR ATTENDERE IL TRHEAD 
-    // O RIFIUTARE LA REGISTRAZIONE
+
+    // Se ci sono troppi utenti registrati la funzione non va a buon fine
+    if (lavagna.connected_users == MAX_USER) {
+        pthread_mutex_unlock(&lavagna.conn_user_sem);
+        return FALSE;
+    }
     
     lavagna.connected_users++;
-    pthread_mutex_unlock(&lavagna.conn_user_sem);
     
-    pthread_mutex_lock(&lavagna.reg_user_sem);
     for (int i = 0; i < MAX_USER; i++) {
         if (lavagna.utenti_registrati[i] == 0) {
             lavagna.utenti_registrati[i] = port;
-            pthread_mutex_unlock(&lavagna.conn_user_sem);
-            return TRUE;
+            break;
         }
     }
 
-    // IDEALMENTE NON SERVE, MA NON SI SA MAI
     pthread_mutex_unlock(&lavagna.conn_user_sem);   
+    return TRUE;
 }
 
+/**
+ * @brief funzione che permette all'utente di uscire dalla kanbar. Se l'utente aveva delle carte
+ * nella colonna doing allora tornano in todo.
+ * 
+ * @param port la porta alla quale l'utente si era registrato
+ * return ritorna 0 in caso di successo, ritorna 1 in caso di errore.
+ */
 bool_t quit(uint16_t port){
     pthread_mutex_lock(&lavagna.conn_user_sem);
     lavagna.connected_users--;
-    pthread_mutex_unlock(&lavagna.conn_user_sem);
 
-    pthread_mutex_lock(&lavagna.reg_user_sem);
     for (int i = 0; i < MAX_USER; i++) {
         if (lavagna.utenti_registrati[i] == port) {
             lavagna.utenti_registrati[i] = 0;
-            pthread_mutex_unlock(&lavagna.conn_user_sem);
-            return TRUE;
+            break;
         }
     }
 
-    // IDEALMENTE NON SERVE, MA NON SI SA MAI
-    pthread_mutex_unlock(&lavagna.conn_user_sem);  
+    pthread_mutex_unlock(&lavagna.conn_user_sem);
 
+    // verifica sulla presenza di card doing con sincronizzazione corretta
+    pthread_mutex_lock(&lavagna.sem_cards[1]);
+    card_t* list = lavagna.cards[1];
+
+    while (list != NULL) {
+        if (list->utente_assegnatario == port) {
+            list->utente_assegnatario = 0;
+            lavagna_move_card_to_head(list, 0);
+        }
+        list = list->next_card;
+    }
+    
+
+    pthread_mutex_unlock(&lavagna.conn_user_sem);
+    return TRUE;
 }
 
 
