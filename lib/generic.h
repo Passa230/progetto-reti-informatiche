@@ -5,6 +5,7 @@
 
 #define MAX_COLUMN 3
 #define MAX_USER 100
+#define MAX_BUF_SIZE 255
 
 // Gestione dei booleani
 #define TRUE    0
