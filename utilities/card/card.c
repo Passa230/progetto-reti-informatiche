@@ -1,5 +1,6 @@
 #include <structure.h>
 #include <generic.h>
+#include <card/card.h>
 #include <time.h>
 #include <stdint.h>
 

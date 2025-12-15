@@ -1,10 +1,9 @@
 #include <pthread.h>
-#include <structure.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <generic.h>
 #include <card.h>
+#include <lavagna.h>
 
 
 lavagna_t lavagna;
