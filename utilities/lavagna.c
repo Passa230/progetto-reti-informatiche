@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <card.h>
-#include <lavagna.h>
+#include <utilities/lavagna.h>
 
 
 lavagna_t lavagna;
