@@ -7,6 +7,7 @@
 #include <utilities/lavagna.h>
 
 void* manage_request(void* arg);
+void* reg_user_to_kanban(void* arg);
 
 int main(){
     // inizializzazione della lavagna
@@ -31,12 +32,16 @@ int main(){
         // si accetta una richiesta
         int new_sd = accept(sd, (struct sockaddr*)&cl_addr, &len);
 
-        // SE HO RICEVUTO UN HELLO CONTROLLO CHE L'UTENTE NON SIA GIà REGISTRATO
-        // CAMBIARE GESTIONE COMPLETAMENTE. 
-        
-        // si crea il thread che la gestisce
+        // Occorre capire se l'utente è registrato
         pthread_t t_id;
-        pthread_create(&t_id, NULL, manage_request, (void*) &cl_addr);
+
+        if(lavagna_is_user_registerd(cl_addr.sin_port) == TRUE){
+            // allora gestione della richiesta
+            pthread_create(&t_id, NULL, manage_request, new_sd);
+        } else {
+            // si registra l'utente e si fa uccide il thread
+            pthread_create(&t_id, NULL, reg_user_to_kanban, (void*) &cl_addr);
+        }        
 
         // si fa in modo che al termine del thread venga pulita tutta la sua memoria
         pthread_detach(t_id);
@@ -46,6 +51,9 @@ int main(){
 }
 
 
+/**
+ * @attention I comandi disponibili sono: CREATE_CARD, SHOW_USR_LIST e SHOW_LAVAGNA, QUIT
+ */
 void* manage_request(void* arg){
     // va gestita la richiesta in funzione di quello che l'utente
     // chiede
@@ -53,27 +61,42 @@ void* manage_request(void* arg){
     uint16_t connection_active;
     int user_sd = (int)(intptr_t) arg;
     char buf[MAX_BUF_SIZE];
-    struct sockaddr_in cl_addr;
-    /**
-     * Idealmente la funzione dovrebbe entrare in un ciclo infinito che termina al 
-     * momento del quit.
-     */
+    struct sockaddr_in* cl_addr;
+    getpeername(user_sd, cl_addr, sizeof(cl_addr));
     
     while (connection_active == 1) {
         // dobbiamo eseguire
         
         ssize_t size;
         size = recv(user_sd, buf, MAX_BUF_SIZE, 0); 
-        if (size > 0) {
-            if (strncmp(buf, "HELLO", 5) == 0) {
-                printf("Comando ricevuto: HELLO da socket %d\n", user_sd);
-                
-            }
-        } else {
-            // Errore di ricezione --> da gestire
+        // GESTIRE LA LOGICA DEI COMANDI
+        
+        if (strcmp(buf, "CREATE_CARD") == 0) {
+            // TODO: Creare una nuova card
+        }
+
+        if (strcmp(buf, "SHOW_USR_LIST") == 0) {
+            // TODO: Mostrare lista degli utenti
+        }
+
+        if (strcmp(buf, "SHOW_LAVAGNA") == 0) {
+            // TODO: Mostrare la lavagna 
+        }
+
+        if (strcmp(buf, "QUIT") == 0) {
+            lavagna_quit(cl_addr->sin_port);
+            send(user_sd, "Cancellazione avvenuta con successo\n\0", 38, NULL);
+            pthread_exit(0);
         }
         
         memset(buf, 0, sizeof(buf));
     }
     
+}
+
+void* reg_user_to_kanban(void* arg){
+    struct sockaddr_in* s = (struct sockaddr_in*) arg;
+    uint16_t port = s->sin_port;
+    lavagna_hello(port);
+    pthread_exit(0);
 }

@@ -66,7 +66,6 @@ struct lavagna{
 
     // @brief vettore che contiene gli utenti che sono attualmente iscritti alla lavagna
     uint16_t utenti_registrati[MAX_USER];
-    pthread_mutex_t reg_user_sem;
 };
 
 typedef struct lavagna lavagna_t;

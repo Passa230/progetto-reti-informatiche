@@ -1,25 +1,30 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Ilib -Iutilities -Iutilities/card
+CFLAGS = -Wall -g -I. -Ilib -Iutilities/card
+LDFLAGS = -pthread
 
-OBJ = utilities/lavagna.o \
-      utilities/card/card.o \
-      lib/generic.o
+# Oggetti comuni (librerie)
+OBJ_LIB = lib/generic.o
 
-TARGET = lavagna
+# Oggetti specifici per il server
+OBJ_SERVER_UTILS = utilities/lavagna.o utilities/card/card.o
 
-all: $(TARGET)
+# Target principale
+all: server client
 
-$(TARGET): $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET)
+# Compilazione del server
+server: server.o $(OBJ_LIB) $(OBJ_SERVER_UTILS)
+	$(CC) $(CFLAGS) -o server server.o $(OBJ_LIB) $(OBJ_SERVER_UTILS) $(LDFLAGS)
 
-utilities/lavagna.o: utilities/lavagna.c utilities/card/card.h lib/generic.h lib/structure.h
-	$(CC) $(CFLAGS) -c utilities/lavagna.c -o utilities/lavagna.o
+# Compilazione del client
+client: client.o $(OBJ_LIB)
+	$(CC) $(CFLAGS) -o client client.o $(OBJ_LIB) $(LDFLAGS)
 
-utilities/card/card.o: utilities/card/card.c utilities/card/card.h
-	$(CC) $(CFLAGS) -c utilities/card/card.c -o utilities/card/card.o
+# Regola generica per la creazione dei file oggetto
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-lib/generic.o: lib/generic.c lib/generic.h lib/structure.h
-	$(CC) $(CFLAGS) -c lib/generic.c -o lib/generic.o
-
+# Pulizia dei file generati
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f server client *.o lib/*.o utilities/*.o utilities/card/*.o
+
+.PHONY: all clean

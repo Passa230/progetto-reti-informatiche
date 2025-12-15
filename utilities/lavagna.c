@@ -22,9 +22,8 @@ bool_t lavagna_init(){
 
     pthread_mutex_init(&lavagna.conn_user_sem, NULL);
     lavagna.connected_users = 0;
-
-    pthread_mutex_init(&lavagna.reg_user_sem, NULL);
     memset(lavagna.utenti_registrati, 0, MAX_USER);
+
     return TRUE;
 }
 
@@ -230,18 +229,13 @@ bool_t lavagna_quit(uint16_t port){
 }
 
 
-
-
-
-int main(){
-    int n_card = 3;
-
-    lavagna_init();
-
-    for (int i = 0; i < n_card; i++) {
-        lavagna_card_add("Hello word", 10);
+bool_t lavagna_is_user_registerd(uint16_t port){
+    bool_t res = FALSE;
+    pthread_mutex_lock(&lavagna.conn_user_sem);
+    for (int i = 0; i < lavagna.connected_users; i++) {
+        res = (lavagna.utenti_registrati[i] == port) ? TRUE: res;
     }
-    
-    lavagna_stampa();
+    pthread_mutex_unlock(&lavagna.conn_user_sem);
+    return res;
 }
 
