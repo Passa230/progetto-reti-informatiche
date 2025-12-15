@@ -1,4 +1,4 @@
-#include "generic.h"
+#include <lib/generic.h>
 
 /* Definizioni delle variabili dichiarate come extern in generic.h */
 id_t NEXT_CARD_ID = 1;
