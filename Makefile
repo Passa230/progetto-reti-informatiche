@@ -1,12 +1,12 @@
 CC = gcc
-CFLAGS = -Wall -g -I. -Ilib -Iutilities/card
+CFLAGS = -Wall -g -I. -Ilib -Iutilities
 LDFLAGS = -pthread
 
 # Oggetti comuni (librerie)
 OBJ_LIB = lib/generic.o
 
 # Oggetti specifici per il server
-OBJ_SERVER_UTILS = utilities/lavagna.o utilities/card/card.o
+OBJ_SERVER_UTILS = utilities/lavagna.o 
 
 # Target principale
 all: server client
@@ -25,6 +25,5 @@ client: client.o $(OBJ_LIB)
 
 # Pulizia dei file generati
 clean:
-	rm -f server client *.o lib/*.o utilities/*.o utilities/card/*.o
-
+	rm -f server client *.o lib/*.o utilities/*.o
 .PHONY: all clean
