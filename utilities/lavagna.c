@@ -3,12 +3,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <lavagna.h>
+#include <stdlib.h>
 
 lavagna_t lavagna;
 
 
 // FUNZIONI UTILITA CARD
 // FUNZIONI UTILITA PER LA LAVAGNA
+
+
+
 /***
  * Funzione che genera una nuova card. 
  * @param testo_attivita descrive l'attività relativa alla card.
