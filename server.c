@@ -94,7 +94,7 @@ void* manage_request(void* arg){
 
         if (strcmp(buf, "QUIT") == 0) {
             lavagna_quit(cl_addr.sin_port);
-            send(user_sd, "ok\0", 3, 0);
+            send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\0", 35 , 0);
             pthread_exit(0);
         }
         

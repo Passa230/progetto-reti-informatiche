@@ -12,6 +12,7 @@ int main(int argc, char **argv){
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE];
     char in_buf[MAX_BUF_SIZE];
+    ssize_t size;
 
     sd = socket(AF_INET, SOCK_STREAM, 0);
     
@@ -19,13 +20,18 @@ int main(int argc, char **argv){
     sv_addr.sin_family = AF_INET ;
 
     // Controllare che quella passata sia una porta e sia giusta
+    if (atoi(argv[1]) < 5678) {
+        printf("ERRORE: Non è possibile registrarsi a questa porta");
+        return 0;
+    }
+    
+    
     sv_addr.sin_port = htons(atoi(argv[1]));
 
     inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
     ret = connect(sd, (struct sockaddr*)&sv_addr, sizeof(sv_addr));
 
     // si aspetta la conferma della registrazione
-    ssize_t size;
     size = recv(sd, buf, MAX_BUF_SIZE, 0);
 
     if (strcmp(buf, "ok")) {
@@ -34,7 +40,13 @@ int main(int argc, char **argv){
     
     uint16_t connessione_attiva = 1;
     while (connessione_attiva == 1) {
-        scanf("%s", buf);
+        scanf("%s", in_buf);
+        
+        size = send(sd, in_buf, MAX_BUF_SIZE, 0);
+
+        // si attende la risposta dal server 
+        size = recv(sd, buf, MAX_BUF_SIZE, 0);
+        printf("%s\n", buf);
     }
     
 }
