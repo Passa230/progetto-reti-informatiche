@@ -32,7 +32,9 @@ int main(int argc, char **argv){
     ret = connect(sd, (struct sockaddr*)&sv_addr, sizeof(sv_addr));
 
     // si aspetta la conferma della registrazione
-    size = recv(sd, buf, MAX_BUF_SIZE, 0);
+    size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
+    // TODO: Gestire size < 0
+    buf[size] = '\0';
 
     if (strcmp(buf, "ok") == 0) {
         printf("Registrazione avvenuta con successo\n");

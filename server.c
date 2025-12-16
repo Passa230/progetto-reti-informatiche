@@ -41,16 +41,14 @@ int main(){
         if(lavagna_is_user_registerd(cl_addr.sin_port) == TRUE){
             // allora gestione della richiesta
             pthread_create(&t_id, NULL, manage_request, (void*)(intptr_t)new_sd);
+            pthread_detach(t_id);
         } else {
             // si registra l'utente e si fa uccide il thread
             pthread_create(&t_id, NULL, reg_user_to_kanban, (void*) &cl_addr);
             pthread_join(t_id, NULL);
-            send(new_sd, "ok\n\0", 38, 0);
+            send(new_sd, "ok", strlen("ok") + 1, 0);
 
-        }        
-
-        // si fa in modo che al termine del thread venga pulita tutta la sua memoria
-        pthread_detach(t_id);
+        }               
 
     }
     
