@@ -13,7 +13,8 @@ int main(){
     // inizializzazione della lavagna
     lavagna_init();
 
-    int ret, sd, len;
+    int ret, sd;
+    socklen_t len;
     
     struct sockaddr_in my_addr, cl_addr;
 
@@ -25,7 +26,9 @@ int main(){
     inet_pton(AF_INET, "127.0.0.1", &my_addr.sin_addr);
 
     ret = bind(sd, (struct sockaddr*) &my_addr, sizeof(my_addr));
+    // TODO: verificare errore di associazione
     ret = listen(sd, 20);
+    // TODO: verificare errore sulla listen
     len = sizeof(cl_addr);   
 
     for (;;) {    
@@ -37,7 +40,7 @@ int main(){
 
         if(lavagna_is_user_registerd(cl_addr.sin_port) == TRUE){
             // allora gestione della richiesta
-            pthread_create(&t_id, NULL, manage_request, new_sd);
+            pthread_create(&t_id, NULL, manage_request, (void*)(intptr_t)new_sd);
         } else {
             // si registra l'utente e si fa uccide il thread
             pthread_create(&t_id, NULL, reg_user_to_kanban, (void*) &cl_addr);
@@ -58,17 +61,20 @@ void* manage_request(void* arg){
     // va gestita la richiesta in funzione di quello che l'utente
     // chiede
 
-    uint16_t connection_active;
+    uint16_t connection_active = 1;
     int user_sd = (int)(intptr_t) arg;
     char buf[MAX_BUF_SIZE];
-    struct sockaddr_in* cl_addr;
-    getpeername(user_sd, cl_addr, sizeof(cl_addr));
+    struct sockaddr_in cl_addr;
+    socklen_t len = sizeof(cl_addr);
+    getpeername(user_sd, (struct sockaddr*)&cl_addr, &len);
     
     while (connection_active == 1) {
         // dobbiamo eseguire
         
         ssize_t size;
         size = recv(user_sd, buf, MAX_BUF_SIZE, 0); 
+        // TODO: Gestire la ricezione dell'errore
+
         // GESTIRE LA LOGICA DEI COMANDI
         
         if (strcmp(buf, "CREATE_CARD") == 0) {
@@ -84,8 +90,8 @@ void* manage_request(void* arg){
         }
 
         if (strcmp(buf, "QUIT") == 0) {
-            lavagna_quit(cl_addr->sin_port);
-            send(user_sd, "Cancellazione avvenuta con successo\n\0", 38, NULL);
+            lavagna_quit(cl_addr.sin_port);
+            send(user_sd, "Cancellazione avvenuta con successo\n\0", 38, 0);
             pthread_exit(0);
         }
         

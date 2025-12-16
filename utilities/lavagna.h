@@ -92,4 +92,12 @@ bool_t lavagna_quit(uint16_t port);
  */
 void lavagna_move_card_to_head(card_t* card, colonna_t col);
 
+/**
+ * @brief Controlla se un utente è registrato alla lavagna
+ * 
+ * @param port la porta dell'utente da controllare
+ * @return TRUE se l'utente è registrato, FALSE altrimenti
+ */
+bool_t lavagna_is_user_registerd(uint16_t port);
+
 #endif /* LAVAGNA_H */
