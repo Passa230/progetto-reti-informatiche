@@ -24,9 +24,6 @@ typedef enum colonna colonna_t;
 // Dichiarazioni per la generazione degli id (definizioni in generic.c)
 
 typedef unsigned int id_t;
-
-unsigned int NEXT_CARD_ID = 1;
-pthread_mutex_t semaforo_ID;
 id_t get_new_id(void);
 
 
