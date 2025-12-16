@@ -44,6 +44,9 @@ int main(){
         } else {
             // si registra l'utente e si fa uccide il thread
             pthread_create(&t_id, NULL, reg_user_to_kanban, (void*) &cl_addr);
+            pthread_join(t_id, NULL);
+            send(new_sd, "ok\n\0", 38, 0);
+
         }        
 
         // si fa in modo che al termine del thread venga pulita tutta la sua memoria
@@ -91,7 +94,7 @@ void* manage_request(void* arg){
 
         if (strcmp(buf, "QUIT") == 0) {
             lavagna_quit(cl_addr.sin_port);
-            send(user_sd, "Cancellazione avvenuta con successo\n\0", 38, 0);
+            send(user_sd, "ok\0", 3, 0);
             pthread_exit(0);
         }
         
