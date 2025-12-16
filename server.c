@@ -109,6 +109,6 @@ void* reg_user_to_kanban(void* arg){
     ssize_t size = recv(user_sd, buf, MAX_BUF_SIZE-1, 0);
     uint16_t port = atoi(buf);
     lavagna_hello(port);
-    printf("registrato utente alla porta %d", port);
+    printf("registrato utente alla porta %d\n", port);
     pthread_exit(0);
 }
