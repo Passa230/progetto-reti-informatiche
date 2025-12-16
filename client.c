@@ -42,7 +42,8 @@ int main(int argc, char **argv){
     while (connessione_attiva == 1) {
         scanf("%s", in_buf);
         
-        size = send(sd, in_buf, MAX_BUF_SIZE, 0);
+        size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+        memset(in_buf, sizeof(in_buf) + 1, 0);
 
         // si attende la risposta dal server 
         size = recv(sd, buf, MAX_BUF_SIZE, 0);

@@ -96,8 +96,10 @@ void* manage_request(void* arg){
             lavagna_quit(cl_addr.sin_port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\0", 35 , 0);
             pthread_exit(0);
+        } else {
+            send(user_sd, "COMANDO NON VALIDO\0", 35 , 0);
         }
-        
+
         memset(buf, 0, sizeof(buf));
     }
     
