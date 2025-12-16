@@ -136,11 +136,6 @@ bool_t lavagna_card_add(const char* testo_attivita, uint16_t utente_creatore){
  * @return la card rimossa se la funzione è terminata correttamente, NULL altrimenti.
  */
 card_t* lavagna_card_remove(id_t id, id_t list) {
-    if (id < 0 || id >= NEXT_CARD_ID) {
-        printf("ERRORE: La card non esiste\n");
-        return NULL;
-    }
-
     if (list < 0 || list >= MAX_COLUMN) {
         printf("ERRORE: L'inserimento deve essere fatto in una lista corretta\n");
         return NULL;
