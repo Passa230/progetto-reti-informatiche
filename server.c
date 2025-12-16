@@ -3,8 +3,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <generic.h>
 #include <utilities/lavagna.h>
+#include <string.h>
 
 void* manage_request(void* arg);
 void* reg_user_to_kanban(void* arg);
