@@ -3,6 +3,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <generic.h>
+#include <stdio.h>
+#include <string.h>
 
 
 int main(int argc, char **argv){
