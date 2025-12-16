@@ -11,6 +11,7 @@ int main(int argc, char **argv){
     int ret, sd;
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE];
+    char in_buf[MAX_BUF_SIZE];
 
     sd = socket(AF_INET, SOCK_STREAM, 0);
     
@@ -31,5 +32,9 @@ int main(int argc, char **argv){
         printf("Registrazione avvenuta con successo\n");
     }
     
+    uint16_t connessione_attiva = 1;
+    while (connessione_attiva == 1) {
+        scanf("%s", buf);
+    }
     
 }
