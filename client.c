@@ -34,20 +34,27 @@ int main(int argc, char **argv){
     // si aspetta la conferma della registrazione
     size = recv(sd, buf, MAX_BUF_SIZE, 0);
 
-    if (strcmp(buf, "ok")) {
+    if (strcmp(buf, "ok") == 0) {
         printf("Registrazione avvenuta con successo\n");
+    } else {
+        printf("Errore di registrazione\n");
+        close(sd);
+        return 1;
     }
     
     uint16_t connessione_attiva = 1;
     while (connessione_attiva == 1) {
-        scanf("%s", in_buf);
+        scanf("%1023s", in_buf); 
         
         size = send(sd, in_buf, strlen(in_buf) + 1, 0);
-        memset(in_buf, sizeof(in_buf) + 1, 0);
-
+        memset(in_buf, 0, sizeof(in_buf));
         // si attende la risposta dal server 
         size = recv(sd, buf, MAX_BUF_SIZE, 0);
-        printf("%s\n", buf);
+        if (size <= 0) {
+            printf("Connessione chiusa dal server\n");
+            break;
+        }
+        printf("%s\n\0", buf);
     }
     
 }
