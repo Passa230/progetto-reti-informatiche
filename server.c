@@ -44,7 +44,7 @@ int main(){
             pthread_detach(t_id);
         } else {
             // si registra l'utente e si fa uccide il thread
-            pthread_create(&t_id, NULL, reg_user_to_kanban, (void*) &cl_addr);
+            pthread_create(&t_id, NULL, reg_user_to_kanban, (void*)(intptr_t)new_sd);
             pthread_join(t_id, NULL);
             send(new_sd, "ok", strlen("ok") + 1, 0);
 
@@ -104,8 +104,11 @@ void* manage_request(void* arg){
 }
 
 void* reg_user_to_kanban(void* arg){
-    struct sockaddr_in* s = (struct sockaddr_in*) arg;
-    uint16_t port = s->sin_port;
+    char buf[MAX_BUF_SIZE];
+    int user_sd = (int)(intptr_t) arg;
+    ssize_t size = recv(user_sd, buf, MAX_BUF_SIZE-1, 0);
+    uint16_t port = atoi(buf);
     lavagna_hello(port);
+    printf("registrato utente alla porta %d", port);
     pthread_exit(0);
 }

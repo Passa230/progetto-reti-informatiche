@@ -26,7 +26,7 @@ int main(int argc, char **argv){
     }
     
     
-    sv_addr.sin_port = htons(atoi(argv[1]));
+    sv_addr.sin_port = htons(5678);
 
     inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
     ret = connect(sd, (struct sockaddr*)&sv_addr, sizeof(sv_addr));
