@@ -329,7 +329,12 @@ void lavagna_user_list(char* buf, size_t max_len){
     memset(buf, 0, max_len);
 
     // concatenazione messaggio
-    written = snprintf(buf, max_len, "|--- \tUTENTI CONNESSI\t ---|\n");
+    written = snprintf(
+        buf, 
+        max_len, 
+        "|--- %-20s ---|\n| ------------------------ |\n", 
+        "UTENTI REGISTRATI"
+    );
 
     if (written < 0) {
         pthread_mutex_unlock(&lavagna.conn_user_sem);
@@ -343,7 +348,7 @@ void lavagna_user_list(char* buf, size_t max_len){
             written = snprintf(
                 buf + used,
                 max_len - used,
-                "|---\t%d\t---|\n",
+                "|---%20u---|\n",
                 lavagna.utenti_registrati[i]
             );
 
