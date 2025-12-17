@@ -61,7 +61,7 @@ void* manage_request(void* arg){
 
     uint16_t connection_active = 1;
     int user_sd = (int)(intptr_t) arg;
-    char buf[MAX_BUF_SIZE];
+    char buf[MAX_BUF_SIZE], out_buf[MAX_BUF_SIZE];
     struct sockaddr_in cl_addr;
     socklen_t len = sizeof(cl_addr);
     getpeername(user_sd, (struct sockaddr*)&cl_addr, &len);
@@ -80,7 +80,8 @@ void* manage_request(void* arg){
         }
 
         if (strcmp(buf, "SHOW_USR_LIST") == 0) {
-            
+            lavagna_user_list(out_buf, MAX_BUF_SIZE);
+            send(user_sd, out_buf, MAX_BUF_SIZE-1, 0);
         }
 
         if (strcmp(buf, "SHOW_LAVAGNA") == 0) {
