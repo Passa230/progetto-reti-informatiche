@@ -38,7 +38,7 @@ int main(){
         // Occorre capire se l'utente è registrato
         pthread_t t_id;
 
-        pthread_create(&t_id, NULL, manage_request, (void*)(intptr_t)new_sd);
+        pthread_create(&t_id, NULL, manage_request, (void*)(intptr_t) new_sd);
         pthread_detach(t_id);     
 
     }
@@ -59,6 +59,7 @@ void* manage_request(void* arg){
     ssize_t size = recv(user_sd, buf, MAX_BUF_SIZE-1, 0);
     uint16_t port = atoi(buf);
     lavagna_hello(port);
+    send(user_sd, "ok", strlen("ok") + 1, 0);
     printf("registrato utente alla porta %d\n", port);
 
     
