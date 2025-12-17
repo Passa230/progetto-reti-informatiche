@@ -280,22 +280,35 @@ bool_t lavagna_quit(uint16_t port){
 
     while (list != NULL) {
         if (list->utente_assegnatario == port) {
-            list->utente_assegnatario = 0;
+            card_t* card_to_move = lavagna_card_remove(list->id, 1);
+            pthread_mutex_unlock(&lavagna.sem_cards[1]);
+
+            card_to_move->utente_assegnatario = 0;
             lavagna_move_card_to_head(list, 0);
+
+            pthread_mutex_lock(&lavagna.sem_cards[1]);
+            list = lavagna.cards[1];
+        } else {
+            list = list->next_card;
         }
-        list = list->next_card;
     }
     
 
-    pthread_mutex_unlock(&lavagna.conn_user_sem);
+    pthread_mutex_unlock(&lavagna.sem_cards[1]);
     return TRUE;
 }
 
 
+/**
+ * @brief funzione che verifica se una particolare porta, cioè un utente, è già 
+ * registrato all'interno del sistema.
+ * 
+ * @param port porta di cui si vuole verificare la registrazione
+ */
 bool_t lavagna_is_user_registerd(uint16_t port){
     bool_t res = FALSE;
     pthread_mutex_lock(&lavagna.conn_user_sem);
-    for (int i = 0; i < lavagna.connected_users; i++) {
+    for (int i = 0; i < MAX_USER; i++) {
         res = (lavagna.utenti_registrati[i] == port) ? TRUE: res;
     }
     pthread_mutex_unlock(&lavagna.conn_user_sem);
@@ -309,20 +322,36 @@ void lavagna_user_list(char* buf, size_t max_len){
     pthread_mutex_lock(&lavagna.conn_user_sem);
 
     char tmp[32];
+    size_t used = 0;
+    int written;
 
     // pulizia del buffer
     memset(buf, 0, max_len);
 
     // concatenazione messaggio
-    strncat(buf, "Utenti connessi:\n", max_len - 1);
+    written = snprintf(buf, max_len, "|--- \tUTENTI CONNESSI\t ---|\n");
 
+    if (written < 0) {
+        pthread_mutex_unlock(&lavagna.conn_user_sem);
+        return;
+    }
 
-    for (int i = 0; i < lavagna.connected_users; i++) {
+    used = written;
+
+    for (int i = 0; i < MAX_USER; i++) {
         if (lavagna.utenti_registrati[i] != 0) {
-            snprintf(tmp, 22, "\t- Utente porta: %d\n", lavagna.utenti_registrati[i]);
-            strcat(buf, tmp);
+            written = snprintf(
+                buf + used,
+                max_len - used,
+                "|---\t%d\t---|\n",
+                lavagna.utenti_registrati[i]
+            );
+
+            if (written < 0 || written >= max_len - used)
+                break;
+            
+            used += written;   
         }
-        
     }
     
     pthread_mutex_unlock(&lavagna.conn_user_sem);
