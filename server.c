@@ -38,17 +38,14 @@ int main(){
         // Occorre capire se l'utente è registrato
         pthread_t t_id;
 
-        if(lavagna_is_user_registerd(cl_addr.sin_port) == TRUE){
-            // allora gestione della richiesta
-            pthread_create(&t_id, NULL, manage_request, (void*)(intptr_t)new_sd);
-            pthread_detach(t_id);
-        } else {
-            // si registra l'utente e si fa uccide il thread
+        if(lavagna_is_user_registerd(cl_addr.sin_port) == FALSE){
             pthread_create(&t_id, NULL, reg_user_to_kanban, (void*)(intptr_t)new_sd);
             pthread_join(t_id, NULL);
             send(new_sd, "ok", strlen("ok") + 1, 0);
+        } 
 
-        }               
+        pthread_create(&t_id, NULL, manage_request, (void*)(intptr_t)new_sd);
+        pthread_detach(t_id);     
 
     }
     
@@ -94,9 +91,9 @@ void* manage_request(void* arg){
             lavagna_quit(cl_addr.sin_port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\0", 35 , 0);
             pthread_exit(0);
-        } else {
-            send(user_sd, "COMANDO NON VALIDO\0", 35 , 0);
-        }
+        } 
+
+        send(user_sd, "COMANDO INVIATO\0", 35 , 0);
 
         memset(buf, 0, sizeof(buf));
     }
