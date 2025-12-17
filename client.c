@@ -47,7 +47,8 @@ int main(int argc, char **argv){
     
     uint16_t connessione_attiva = 1;
     while (connessione_attiva == 1) {
-        scanf(">>> %1023s", in_buf); 
+        printf(">>> ");
+        scanf("%1023s", in_buf); 
         
         size = send(sd, in_buf, strlen(in_buf) + 1, 0);
         memset(in_buf, 0, sizeof(in_buf));
