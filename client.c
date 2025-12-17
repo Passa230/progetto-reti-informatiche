@@ -58,6 +58,9 @@ int main(int argc, char **argv){
             break;
         }
         printf("%s\n\0", buf);
+        if(strcmp(in_buf, "QUIT") == 0){
+            break;
+        }
     }
     
 }

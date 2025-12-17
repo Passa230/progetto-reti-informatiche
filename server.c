@@ -80,7 +80,7 @@ void* manage_request(void* arg){
         }
 
         if (strcmp(buf, "SHOW_USR_LIST") == 0) {
-            // TODO: Mostrare lista degli utenti
+            
         }
 
         if (strcmp(buf, "SHOW_LAVAGNA") == 0) {
@@ -93,7 +93,7 @@ void* manage_request(void* arg){
             pthread_exit(0);
         } 
 
-        send(user_sd, "COMANDO INVIATO\0", 35 , 0);
+        //send(user_sd, "COMANDO INVIATO\0", 35 , 0);
 
         memset(buf, 0, sizeof(buf));
     }

@@ -303,5 +303,25 @@ bool_t lavagna_is_user_registerd(uint16_t port){
 }
 
 
+void lavagna_user_list(char* buf, size_t max_len){
 
+    // lock sul semaforo degli utenti connessi
+    pthread_mutex_lock(&lavagna.conn_user_sem);
+
+    // pulizia del buffer
+    memset(buf, 0, max_len);
+
+    // concatenazione messaggio
+    strncat(buf, "Utenti connessi:\n", max_len - 1);
+
+
+    for (int i = 0; i < lavagna.connected_users; i++) {
+        if (lavagna.utenti_registrati[i] != 0) {
+            snprintf(buf, 22, "\t- Utente porta: %d\n", lavagna.utenti_registrati[i]);
+        }
+        
+    }
+    
+    pthread_mutex_unlock(&lavagna.conn_user_sem);
+}
 

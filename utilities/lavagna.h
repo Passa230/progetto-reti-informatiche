@@ -100,4 +100,13 @@ void lavagna_move_card_to_head(card_t* card, colonna_t col);
  */
 bool_t lavagna_is_user_registerd(uint16_t port);
 
+/**
+ * @brief Restituisce una stringa contenente la lista degli utenti connessi
+ * 
+ * @param buffer Buffer dove scrivere la lista
+ * @param max_len Dimensione massima del buffer
+ * @return TRUE se l'operazione è riuscita, FALSE altrimenti
+ */
+void lavagna_user_list(char* buf, size_t max_len);
+
 #endif /* LAVAGNA_H */
