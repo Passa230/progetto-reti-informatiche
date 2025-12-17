@@ -38,12 +38,6 @@ int main(){
         // Occorre capire se l'utente è registrato
         pthread_t t_id;
 
-        if(lavagna_is_user_registerd(cl_addr.sin_port) == FALSE){
-            pthread_create(&t_id, NULL, reg_user_to_kanban, (void*)(intptr_t)new_sd);
-            pthread_join(t_id, NULL);
-            send(new_sd, "ok", strlen("ok") + 1, 0);
-        } 
-
         pthread_create(&t_id, NULL, manage_request, (void*)(intptr_t)new_sd);
         pthread_detach(t_id);     
 
@@ -58,13 +52,16 @@ int main(){
 void* manage_request(void* arg){
     // va gestita la richiesta in funzione di quello che l'utente
     // chiede
-
-    uint16_t connection_active = 1;
     int user_sd = (int)(intptr_t) arg;
+    uint16_t connection_active = 1;
     char buf[MAX_BUF_SIZE], out_buf[MAX_BUF_SIZE];
-    struct sockaddr_in cl_addr;
-    socklen_t len = sizeof(cl_addr);
-    getpeername(user_sd, (struct sockaddr*)&cl_addr, &len);
+
+    ssize_t size = recv(user_sd, buf, MAX_BUF_SIZE-1, 0);
+    uint16_t port = atoi(buf);
+    lavagna_hello(port);
+    printf("registrato utente alla porta %d\n", port);
+
+    
     
     while (connection_active == 1) {
         // dobbiamo eseguire
@@ -89,7 +86,7 @@ void* manage_request(void* arg){
         }
 
         if (strcmp(buf, "QUIT") == 0) {
-            lavagna_quit(cl_addr.sin_port);
+            lavagna_quit(port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\n\0", 37 , 0);
             pthread_exit(0);
         } 
@@ -101,12 +98,3 @@ void* manage_request(void* arg){
     
 }
 
-void* reg_user_to_kanban(void* arg){
-    char buf[MAX_BUF_SIZE];
-    int user_sd = (int)(intptr_t) arg;
-    ssize_t size = recv(user_sd, buf, MAX_BUF_SIZE-1, 0);
-    uint16_t port = atoi(buf);
-    lavagna_hello(port);
-    printf("registrato utente alla porta %d\n", port);
-    pthread_exit(0);
-}
