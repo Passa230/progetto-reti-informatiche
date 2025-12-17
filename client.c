@@ -51,7 +51,6 @@ int main(int argc, char **argv){
         fgets(in_buf, sizeof(in_buf), stdin);
 
         size = send(sd, in_buf, strlen(in_buf) + 1, 0);
-        memset(in_buf, 0, sizeof(in_buf));
         // si attende la risposta dal server 
         size = recv(sd, buf, MAX_BUF_SIZE, 0);
         if (size <= 0) {
@@ -62,6 +61,9 @@ int main(int argc, char **argv){
         if(strcmp(in_buf, "QUIT") == 0){
             return 0;
         }
+
+        memset(in_buf, 0, sizeof(in_buf));
+
     }
     
 }
