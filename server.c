@@ -53,7 +53,7 @@ void* manage_request(void* arg){
     // va gestita la richiesta in funzione di quello che l'utente
     // chiede
     int user_sd = (int)(intptr_t) arg;
-    uint16_t connection_active = 1;
+    uint16_t connection_active = 1, flag = 0;
     char buf[MAX_BUF_SIZE], out_buf[MAX_BUF_SIZE];
 
     ssize_t size = recv(user_sd, buf, MAX_BUF_SIZE-1, 0);
@@ -75,24 +75,33 @@ void* manage_request(void* arg){
         
         if (strcmp(buf, "CREATE_CARD") == 0) {
             // TODO: Creare una nuova card
+
+            flag = 1;
         }
 
         if (strcmp(buf, "SHOW_USR_LIST") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
             send(user_sd, out_buf, MAX_BUF_SIZE-1, 0);
+        
+            flag = 1;
         }
 
         if (strcmp(buf, "SHOW_LAVAGNA") == 0) {
             // TODO: Mostrare la lavagna 
+        
+            flag = 1;
         }
 
         if (strcmp(buf, "QUIT") == 0) {
             lavagna_quit(port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\n\0", 37 , 0);
             pthread_exit(0);
+
+            flag = 1;
         } 
 
-        //send(user_sd, "COMANDO INVIATO\0", 35 , 0);
+        if(flag == 0)
+            send(user_sd, "ERRORE: Comando non valido!\n\0", 37 , 0);
 
         memset(buf, 0, sizeof(buf));
     }
