@@ -49,7 +49,7 @@ int main(int argc, char **argv){
     while (connessione_attiva == 1) {
         printf(">>> ");
         fgets(in_buf, sizeof(in_buf), stdin);
-        
+
         size = send(sd, in_buf, strlen(in_buf) + 1, 0);
         memset(in_buf, 0, sizeof(in_buf));
         // si attende la risposta dal server 

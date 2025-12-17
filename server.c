@@ -74,26 +74,26 @@ void* manage_request(void* arg){
 
         // GESTIRE LA LOGICA DEI COMANDI
         
-        if (strcmp(buf, "CREATE_CARD") == 0) {
+        if (strcmp(buf, "CREATE_CARD\n") == 0) {
             // TODO: Creare una nuova card
 
             flag = 1;
         }
 
-        if (strcmp(buf, "SHOW_USR_LIST") == 0) {
+        if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
             send(user_sd, out_buf, MAX_BUF_SIZE-1, 0);
         
             flag = 1;
         }
 
-        if (strcmp(buf, "SHOW_LAVAGNA") == 0) {
+        if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
             // TODO: Mostrare la lavagna 
         
             flag = 1;
         }
 
-        if (strcmp(buf, "QUIT") == 0) {
+        if (strcmp(buf, "QUIT\n") == 0) {
             lavagna_quit(port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\n\0", 37 , 0);
             pthread_exit(0);
