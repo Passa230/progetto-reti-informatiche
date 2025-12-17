@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv){
     // Blocco della possibilità di fare CTRL + C all'utente
-    signal(SIGINT, NULL);
+    signal(SIGINT, SIG_IGN);
 
     int ret, sd;
     struct sockaddr_in sv_addr;
