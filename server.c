@@ -66,6 +66,7 @@ void* manage_request(void* arg){
     
     while (connection_active == 1) {
         // dobbiamo eseguire
+        flag = 0;
         
         ssize_t size;
         size = recv(user_sd, buf, MAX_BUF_SIZE, 0); 
@@ -100,8 +101,9 @@ void* manage_request(void* arg){
             flag = 1;
         } 
 
-        if(flag == 0)
-            send(user_sd, "ERRORE: Comando non valido!\n\0", 37 , 0);
+        if (flag == 0){
+            send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
+        }
 
         memset(buf, 0, sizeof(buf));
     }

@@ -332,7 +332,7 @@ void lavagna_user_list(char* buf, size_t max_len){
     written = snprintf(
         buf, 
         max_len, 
-        "|--- %-18s ---|\n|--------------------------|\n", 
+        "|--- %s ---|\n|-----------------------|\n", 
         "UTENTI REGISTRATI"
     );
 
@@ -348,7 +348,7 @@ void lavagna_user_list(char* buf, size_t max_len){
             written = snprintf(
                 buf + used,
                 max_len - used,
-                "|---%20u---|\n",
+                "|---      %d       ---|\n",
                 lavagna.utenti_registrati[i]
             );
 
