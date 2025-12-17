@@ -5,9 +5,13 @@
 #include <generic.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 
 
 int main(int argc, char **argv){
+    // Blocco della possibilità di fare CTRL + C all'utente
+    signal(SIGINT, NULL);
+
     int ret, sd;
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE];
