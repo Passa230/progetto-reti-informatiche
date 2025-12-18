@@ -3,13 +3,14 @@
 
 #include <pthread.h>
 
-#define MAX_COLUMN 3
-#define MAX_USER 100
-#define MAX_BUF_SIZE 255
+#define MAX_COLUMN          3
+#define MAX_USER            100
+#define MAX_BUF_SIZE        255
+#define MAX_MSG_BUF_SIZE    501
 
 // Gestione dei booleani
-#define TRUE    0
-#define FALSE   1
+#define TRUE                0   
+#define FALSE               1
 
 typedef unsigned short bool_t;
 

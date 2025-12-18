@@ -20,7 +20,7 @@ struct card {
     colonna_t colonna;
 
     // @brief rappresenta la descrizione dell'attività che deve essere portata a termine
-    char* testo_attivita;
+    char testo_attivita[MAX_BUF_SIZE];
 
     // @brief numero di porta del socket relativo all'utente creatore della card
     uint16_t utente_creatore;

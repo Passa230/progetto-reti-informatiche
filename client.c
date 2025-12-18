@@ -54,6 +54,11 @@ int main(int argc, char **argv){
         printf(">>> ");
         fgets(in_buf, sizeof(in_buf), stdin);
 
+        // OPZIONI:
+            // CREARE IN LOCALE LA CARD E MANDARLA.
+            // MANDARE I PARAMETRI UNO A UNO
+
+
         size = send(sd, in_buf, strlen(in_buf) + 1, 0);
         // si attende la risposta dal server 
         size = recv(sd, buf, MAX_BUF_SIZE, 0);
@@ -66,7 +71,17 @@ int main(int argc, char **argv){
             return 0;
         }
 
-        memset(in_buf, 0, sizeof(in_buf));
+        if (strcmp(buf, "CARD_CREATE\n") == 0) {
+            printf("> INSERISCI DESCRIZIONE PER LA CARD [massimo 255 caratteri]\n>");
+            memset(in_buf, 0, sizeof(in_buf));
+            fgets(in_buf, strlen(in_buf) + 1, 0);
+            size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+            if (size <= 0) {
+                printf("Connessione chiusa dal server\n");
+                break;
+            }
+        
+        }
 
     }
     

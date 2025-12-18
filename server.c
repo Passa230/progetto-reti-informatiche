@@ -75,8 +75,9 @@ void* manage_request(void* arg){
         // GESTIRE LA LOGICA DEI COMANDI
         
         if (strcmp(buf, "CREATE_CARD\n") == 0) {
-            // TODO: Creare una nuova card
-
+            memset(buf, 0, sizeof(buf));
+            size = recv(user_sd, buf, MAX_BUF_SIZE, 0);
+            lavagna_card_add(buf, port);
             flag = 1;
         }
 
