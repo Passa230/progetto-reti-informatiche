@@ -26,14 +26,24 @@ int main(){
     inet_pton(AF_INET, "127.0.0.1", &my_addr.sin_addr);
 
     ret = bind(sd, (struct sockaddr*) &my_addr, sizeof(my_addr));
-    // TODO: verificare errore di associazione
+    if (ret < 0) {
+        perror("bind failed");
+        return 1;
+    }
     ret = listen(sd, 20);
-    // TODO: verificare errore sulla listen
+    if (ret < 0) {
+        perror("listen failed");
+        return 1;
+    }
     len = sizeof(cl_addr);   
 
     for (;;) {    
         // si accetta una richiesta
         int new_sd = accept(sd, (struct sockaddr*)&cl_addr, &len);
+        if (new_sd < 0) {
+            perror("accept failed");
+            continue;
+        }
 
         // Occorre capire se l'utente è registrato
         pthread_t t_id;
@@ -57,9 +67,16 @@ void* manage_request(void* arg){
     char buf[MAX_BUF_SIZE], out_buf[MAX_BUF_SIZE];
 
     ssize_t size = recv(user_sd, buf, MAX_BUF_SIZE-1, 0);
-    if (size <= 0) pthread_exit(NULL);
+    if (size <= 0) {
+        close(user_sd);
+        pthread_exit(NULL);
+    }
     buf[size] = '\0';
     uint16_t port = atoi(buf);
+    if (port == 0) {
+        close(user_sd);
+        pthread_exit(NULL);
+    }
     lavagna_hello(port);
     send(user_sd, "ok", strlen("ok") + 1, 0);
     printf("registrato utente alla porta %d\n", port);
@@ -71,18 +88,27 @@ void* manage_request(void* arg){
         flag = 0;
         
         ssize_t size;
-        size = recv(user_sd, buf, MAX_BUF_SIZE, 0); 
-        // TODO: Gestire la ricezione dell'errore
+        size = recv(user_sd, buf, MAX_BUF_SIZE - 1, 0); 
+        if (size <= 0) {
+            lavagna_quit(port);
+            close(user_sd);
+            pthread_exit(NULL);
+        }
+        buf[size] = '\0';
 
         // GESTIRE LA LOGICA DEI COMANDI
         
         if (strcmp(buf, "CARD_CREATE\n") == 0) {
             memset(buf, 0, sizeof(buf));
             send(user_sd, "> INSERISCI DESCRIZIONE PER LA CARD [massimo 255 caratteri]", 60, 0);
-            size = recv(user_sd, buf, MAX_BUF_SIZE, 0);
-            if (size <0 ) {
-                printf("Huston we have a problem\n");
+            size = recv(user_sd, buf, MAX_BUF_SIZE - 1, 0);
+            if (size <= 0) {
+                printf("Errore ricezione descrizione card o connessione chiusa\n");
+                lavagna_quit(port);
+                close(user_sd);
+                pthread_exit(NULL);
             }
+            buf[size] = '\0';
             
             lavagna_card_add(buf, port);
             printf("creata card con testo %s", buf);
@@ -107,6 +133,7 @@ void* manage_request(void* arg){
         if (strcmp(buf, "QUIT\n") == 0) {
             lavagna_quit(port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\n\0", 37 , 0);
+            close(user_sd);
             pthread_exit(0);
 
             flag = 1;

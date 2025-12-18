@@ -9,6 +9,10 @@
 
 
 int main(int argc, char **argv){
+    if (argc < 2) {
+        printf("Usage: %s <port>\n", argv[0]);
+        return 1;
+    }
     // Blocco della possibilità di fare CTRL + C all'utente
     signal(SIGINT, SIG_IGN);
 
@@ -41,7 +45,11 @@ int main(int argc, char **argv){
     printf("Qui ci arrivo\n");
     
     size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
-    // TODO: Gestire size < 0
+    if (size <= 0) {
+        printf("Errore di ricezione o connessione chiusa\n");
+        close(sd);
+        return 1;
+    }
     buf[size] = '\0';
 
     if (strcmp(buf, "ok") == 0) {
