@@ -39,6 +39,8 @@ int main(int argc, char **argv){
 
     size = send(sd, argv[1], sizeof(argv[1]) + 1, 0);
     // si aspetta la conferma della registrazione
+    printf("Qui ci arrivo\n");
+    
     size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
     // TODO: Gestire size < 0
     buf[size] = '\0';
@@ -51,7 +53,7 @@ int main(int argc, char **argv){
         return 1;
     }
 
-    printf("Qui ci arrivo\n");
+    
     
     uint16_t connessione_attiva = 1;
     while (connessione_attiva == 1) {
