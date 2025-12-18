@@ -69,7 +69,7 @@ int main(int argc, char **argv){
             printf("%s\n", buf);
             printf("> ");
             memset(in_buf, 0, sizeof(in_buf));
-            fgets(in_buf, strlen(in_buf) + 1, stdin);
+            fgets(in_buf, sizeof(in_buf) + 1, stdin);
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) {
                 printf("Connessione chiusa dal server\n");
