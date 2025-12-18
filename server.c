@@ -57,6 +57,8 @@ void* manage_request(void* arg){
     char buf[MAX_BUF_SIZE], out_buf[MAX_BUF_SIZE];
 
     ssize_t size = recv(user_sd, buf, MAX_BUF_SIZE-1, 0);
+    if (size <= 0) pthread_exit(NULL);
+    buf[size] = '\0';
     uint16_t port = atoi(buf);
     lavagna_hello(port);
     send(user_sd, "ok", strlen("ok") + 1, 0);
