@@ -212,6 +212,7 @@ void lavagna_stampa(char* buf, size_t max_len){
             list->testo_attivita
         );
         used += written;
+        list = list->next_card;
     }
     
     
