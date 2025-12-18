@@ -62,7 +62,7 @@ int main(int argc, char **argv){
             break;
         }
 
-        printf("%s", buf);
+        printf("%s\n", buf);
 
         if(strcmp(in_buf, "QUIT") == 0){
             return 0;
