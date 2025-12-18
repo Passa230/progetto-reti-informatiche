@@ -9,7 +9,6 @@
 
 
 int main(int argc, char **argv){
-    printf("Qui ci arrivo\n");
     // Blocco della possibilità di fare CTRL + C all'utente
     signal(SIGINT, SIG_IGN);
 
@@ -20,6 +19,7 @@ int main(int argc, char **argv){
     ssize_t size;
 
     sd = socket(AF_INET, SOCK_STREAM, 0);
+    printf("Qui ci arrivo\n");
     
     memset(&sv_addr, 0, sizeof(sv_addr)); 
     sv_addr.sin_family = AF_INET ;
