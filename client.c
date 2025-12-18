@@ -27,9 +27,10 @@ int main(int argc, char **argv){
     // Controllare che quella passata sia una porta e sia giusta
     if (atoi(argv[1]) < 5678) {
         printf("ERRORE: Non è possibile registrarsi a questa porta\n");        
-        //return 0;
+        return 0;
     }
     
+    printf("Qui ci arrivo\n");
     
     sv_addr.sin_port = htons(5678);
 
@@ -49,6 +50,8 @@ int main(int argc, char **argv){
         close(sd);
         return 1;
     }
+
+    printf("Qui ci arrivo\n");
     
     uint16_t connessione_attiva = 1;
     while (connessione_attiva == 1) {
