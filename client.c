@@ -56,19 +56,16 @@ int main(int argc, char **argv){
 
         size = send(sd, in_buf, strlen(in_buf) + 1, 0);
         // si attende la risposta dal server 
-        size = recv(sd, buf, MAX_BUF_SIZE, 0);
+
         if (size <= 0) {
             printf("Connessione chiusa dal server\n");
             break;
         }
 
-        printf("%s\n", buf);
-
-        if(strcmp(in_buf, "QUIT\n") == 0){
-            return 0;
-        }
 
         if (strcmp(in_buf, "CARD_CREATE\n") == 0) {
+            size = recv(sd, buf, MAX_BUF_SIZE, 0);
+            printf("%s\n", buf);
             printf("> ");
             memset(in_buf, 0, sizeof(in_buf));
             fgets(in_buf, strlen(in_buf) + 1, stdin);
@@ -78,7 +75,15 @@ int main(int argc, char **argv){
                 break;
             }
         
+        }       
+
+        size = recv(sd, buf, MAX_BUF_SIZE, 0);
+        printf("%s\n", buf);
+
+        if(strcmp(in_buf, "QUIT\n") == 0){
+            return 0;
         }
+
 
     }
     

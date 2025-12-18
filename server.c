@@ -84,6 +84,7 @@ void* manage_request(void* arg){
             
             lavagna_card_add(buf, port);
             printf("creata card con testo %s", buf);
+            send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
             flag = 1;
         }
 
