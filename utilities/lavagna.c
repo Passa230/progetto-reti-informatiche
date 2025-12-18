@@ -319,17 +319,16 @@ bool_t lavagna_quit(uint16_t port){
     while (list != NULL) {
         if (list->utente_assegnatario == port) {
             card_t* card_to_move = lavagna_card_remove(list->id, 1);
-            pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
             card_to_move->utente_assegnatario = 0;
-            lavagna_move_card_to_head(list, 0);
+            lavagna_move_card_to_head(card_to_move, 0);
 
-            pthread_mutex_lock(&lavagna.sem_cards[1]);
             list = lavagna.cards[1];
         } else {
             list = list->next_card;
         }
     }
+
     
 
     pthread_mutex_unlock(&lavagna.sem_cards[1]);
@@ -353,6 +352,13 @@ bool_t lavagna_is_user_registerd(uint16_t port){
     return res;
 }
 
+/**
+ * @brief Restituisce una stringa contenente la lista degli utenti connessi
+ * 
+ * @param buffer Buffer dove scrivere la lista
+ * @param max_len Dimensione massima del buffer
+ * @return TRUE se l'operazione è riuscita, FALSE altrimenti
+ */
 
 void lavagna_user_list(char* buf, size_t max_len){
 
