@@ -82,7 +82,7 @@ int main(int argc, char **argv){
         
         }       
 
-        if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
+        if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
             size = recv(sd, lavagna_buf, MAX_SBUF_SIZE, 0);
             printf("%s\n", lavagna_buf);
         } else {
