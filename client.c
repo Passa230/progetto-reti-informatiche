@@ -25,8 +25,8 @@ int main(int argc, char **argv){
 
     // Controllare che quella passata sia una porta e sia giusta
     if (atoi(argv[1]) < 5678) {
-        printf("ERRORE: Non è possibile registrarsi a questa porta");
-        return 0;
+        printf("ERRORE: Non è possibile registrarsi a questa porta");        
+        //return 0;
     }
     
     
@@ -54,11 +54,6 @@ int main(int argc, char **argv){
         printf(">>> ");
         fgets(in_buf, sizeof(in_buf), stdin);
 
-        // OPZIONI:
-            // CREARE IN LOCALE LA CARD E MANDARLA.
-            // MANDARE I PARAMETRI UNO A UNO
-
-
         size = send(sd, in_buf, strlen(in_buf) + 1, 0);
         // si attende la risposta dal server 
         size = recv(sd, buf, MAX_BUF_SIZE, 0);
@@ -67,6 +62,7 @@ int main(int argc, char **argv){
             break;
         }
         printf("%s\n\0", buf);
+
         if(strcmp(in_buf, "QUIT") == 0){
             return 0;
         }
