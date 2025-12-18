@@ -96,7 +96,7 @@ void* manage_request(void* arg){
         }
 
         if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
-            // TODO: Mostrare la lavagna 
+            lavagna_stampa();
         
             flag = 1;
         }
