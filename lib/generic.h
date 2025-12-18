@@ -7,6 +7,7 @@
 #define MAX_USER            100
 #define MAX_BUF_SIZE        255
 #define MAX_MSG_BUF_SIZE    501
+#define MAX_SBUF_SIZE       20000
 
 // Gestione dei booleani
 #define TRUE                0   

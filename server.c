@@ -96,9 +96,9 @@ void* manage_request(void* arg){
         }
 
         if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
-            char lavagna_buf[10000];
-            lavagna_stampa(lavagna_buf, 10000);
-            send(user_sd, lavagna_buf, 10000-1, 0);
+            char lavagna_buf[MAX_SBUF_SIZE];
+            lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
+            send(user_sd, lavagna_buf, MAX_SBUF_SIZE-1, 0);
             flag = 1;
         }
 

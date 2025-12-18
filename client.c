@@ -14,7 +14,7 @@ int main(int argc, char **argv){
 
     int ret, sd;
     struct sockaddr_in sv_addr;
-    char buf[MAX_BUF_SIZE];
+    char buf[MAX_BUF_SIZE], lavagna_buf[MAX_SBUF_SIZE];
     char in_buf[MAX_BUF_SIZE];
     ssize_t size;
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv){
             printf("%s\n", buf);
             printf("> ");
             memset(in_buf, 0, sizeof(in_buf));
-            fgets(in_buf, sizeof(in_buf) + 1, stdin);
+            fgets(in_buf, sizeof(in_buf), stdin);
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) {
                 printf("Connessione chiusa dal server\n");
@@ -78,8 +78,15 @@ int main(int argc, char **argv){
         
         }       
 
-        size = recv(sd, buf, MAX_BUF_SIZE, 0);
-        printf("%s\n", buf);
+        if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
+            size = recv(sd, buf, MAX_SBUF_SIZE, 0);
+            printf("%s\n", lavagna_buf);
+        } else {
+            size = recv(sd, buf, MAX_BUF_SIZE, 0);
+            printf("%s\n", buf);
+        }
+        
+        
 
         if(strcmp(in_buf, "QUIT\n") == 0){
             return 0;
