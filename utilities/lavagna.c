@@ -198,7 +198,7 @@ void lavagna_stampa(char* buf, size_t max_len){
     written = snprintf(
         buf, 
         max_len, 
-        "|------------------------------|\n|---------------TODO---------------|\n|------------------------------|"
+        "|------------------------------|\n|-------------TODO-------------|\n|------------------------------|\n"
     );
 
     used += written;
@@ -208,7 +208,7 @@ void lavagna_stampa(char* buf, size_t max_len){
         written = snprintf(
             buf + used,
             max_len -used,
-            "\t- %s",
+            "  - %s",
             list->testo_attivita
         );
         used += written;
