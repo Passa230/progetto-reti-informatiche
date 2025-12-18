@@ -61,7 +61,8 @@ int main(int argc, char **argv){
             printf("Connessione chiusa dal server\n");
             break;
         }
-        printf("%s\n\0", buf);
+
+        printf("%s", buf);
 
         if(strcmp(in_buf, "QUIT") == 0){
             return 0;
