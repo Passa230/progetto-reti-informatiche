@@ -207,7 +207,7 @@ void lavagna_stampa(char* buf, size_t max_len){
     while (list != NULL) {
         written = snprintf(
             buf + used,
-            max_len,
+            max_len -used,
             "\t- %s",
             list->testo_attivita
         );
@@ -216,7 +216,7 @@ void lavagna_stampa(char* buf, size_t max_len){
     
     
     for (int i = 0; i < 3; i++) {
-        pthread_mutex_lock(&lavagna.sem_cards[i]);
+        pthread_mutex_unlock(&lavagna.sem_cards[i]);
     }
 
 }
