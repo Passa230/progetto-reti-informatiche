@@ -138,6 +138,7 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
         return NULL;
     }
     
+    pthread_mutex_lock(&lavagna.sem_cards[list]);
     card_t* curr = lavagna.cards[list];
     card_t* prev = NULL;
     while (curr != NULL) {
@@ -149,12 +150,14 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
                 prev->next_card = curr->next_card;
             }
             //card_delete(&curr);
+            pthread_mutex_unlock(&lavagna.sem_cards[list]);
             return curr;
         }
         prev = curr;
         curr = curr->next_card;
     }
 
+    pthread_mutex_unlock(&lavagna.sem_cards[list]);
     return NULL;
 }
 
@@ -282,8 +285,8 @@ bool_t lavagna_hello(uint16_t port){
     lavagna.connected_users++;
     
     for (int i = 0; i < MAX_USER; i++) {
-        if (lavagna.utenti_registrati[i] == 0) {
-            lavagna.utenti_registrati[i] = port;
+        if (lavagna.utenti_registrati[i].port == 0) {
+            lavagna.utenti_registrati[i].port = port;
             break;
         }
     }
@@ -304,8 +307,8 @@ bool_t lavagna_quit(uint16_t port){
     lavagna.connected_users--;
 
     for (int i = 0; i < MAX_USER; i++) {
-        if (lavagna.utenti_registrati[i] == port) {
-            lavagna.utenti_registrati[i] = 0;
+        if (lavagna.utenti_registrati[i].port == port) {
+            lavagna.utenti_registrati[i].port = 0;
             break;
         }
     }
@@ -346,7 +349,7 @@ bool_t lavagna_is_user_registerd(uint16_t port){
     bool_t res = FALSE;
     pthread_mutex_lock(&lavagna.conn_user_sem);
     for (int i = 0; i < MAX_USER; i++) {
-        res = (lavagna.utenti_registrati[i] == port) ? TRUE: res;
+        res = (lavagna.utenti_registrati[i].port == port) ? TRUE: res;
     }
     pthread_mutex_unlock(&lavagna.conn_user_sem);
     return res;
@@ -388,7 +391,7 @@ void lavagna_user_list(char* buf, size_t max_len){
     used = written;
 
     for (int i = 0; i < MAX_USER; i++) {
-        if (lavagna.utenti_registrati[i] != 0) {
+        if (lavagna.utenti_registrati[i].port != 0) {
             written = snprintf(
                 buf + used,
                 max_len - used,

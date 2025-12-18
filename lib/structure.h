@@ -38,6 +38,20 @@ struct card {
 typedef struct card card_t;
 
 /**
+ * @struct user
+ * @brief struttura che identifica un utente nel sistema specificando la sua porta
+ *        e l'ID della card a cui sta lavorando
+ * 
+ * @attention ogni utente può avere una sola card assegnata per volta.
+ */
+struct user {
+    uint16_t port;
+    int id;
+};
+
+typedef struct user user_t;
+
+/**
  * @struct card
  * @brief Struttura che rappresenta una lavagna del sistema Kanban.
  * 
@@ -65,10 +79,8 @@ struct lavagna{
     pthread_mutex_t conn_user_sem;
 
     // @brief vettore che contiene gli utenti che sono attualmente iscritti alla lavagna
-    uint16_t utenti_registrati[MAX_USER];
+    user_t utenti_registrati[MAX_USER];
 };
 
 typedef struct lavagna lavagna_t;
-
-
 

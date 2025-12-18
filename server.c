@@ -7,7 +7,7 @@
 #include <string.h>
 
 void* manage_request(void* arg);
-void* reg_user_to_kanban(void* arg);
+void* card_handler(void* arg);
 
 int main(){
     // inizializzazione della lavagna
@@ -130,3 +130,23 @@ void* manage_request(void* arg){
     
 }
 
+
+/*
+IDEA: Per ogni card creata si crea un nuovo thread che la assegna e attende un certo intervallo di tempo
+e successivamente manda un messaggio al client chiedendo conferma sul fatto che stia ancora aspettando il lavoro
+*/
+void* card_handler(void* arg){
+    while (1) {
+        for (int i = 0; i < MAX_USER; i++) {
+            /**
+             * Se la card è assegnata la ignora
+             * Se la card non è assegnata la assegna
+             *      - Scorre il vettore relativo agli utenti
+             *      - Appena ne trova uno che non ha delle card assegnate
+             *      - Crea un associazione tra la card e l'utente
+             */
+        }
+        
+    }
+    
+}
