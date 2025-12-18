@@ -37,8 +37,7 @@ int main(int argc, char **argv){
     inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
     ret = connect(sd, (struct sockaddr*)&sv_addr, sizeof(sv_addr));
 
-    size = send(sd, argv[1], sizeof(argv[1]) + 1, 0);
-    // si aspetta la conferma della registrazione
+    size = send(sd, argv[1], strlen(argv[1]) + 1, 0);    // si aspetta la conferma della registrazione
     printf("Qui ci arrivo\n");
     
     size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
