@@ -214,6 +214,46 @@ void lavagna_stampa(char* buf, size_t max_len){
         used += written;
         list = list->next_card;
     }
+
+    written = snprintf(
+        buf, 
+        max_len, 
+        "|------------------------------|\n|-------------DOING------------|\n|------------------------------|\n"
+    );
+
+    used += written;
+
+    card_t* list = lavagna.cards[1];
+    while (list != NULL) {
+        written = snprintf(
+            buf + used,
+            max_len -used,
+            "  - %s",
+            list->testo_attivita
+        );
+        used += written;
+        list = list->next_card;
+    }
+
+    written = snprintf(
+        buf, 
+        max_len, 
+        "|------------------------------|\n|-------------DONE-------------|\n|------------------------------|\n"
+    );
+
+    used += written;
+
+    card_t* list = lavagna.cards[2];
+    while (list != NULL) {
+        written = snprintf(
+            buf + used,
+            max_len -used,
+            "  - %s",
+            list->testo_attivita
+        );
+        used += written;
+        list = list->next_card;
+    }
     
     
     for (int i = 0; i < 3; i++) {
