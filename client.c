@@ -35,7 +35,7 @@ int main(int argc, char **argv){
     inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
     ret = connect(sd, (struct sockaddr*)&sv_addr, sizeof(sv_addr));
 
-    size = send(sd, argv[1], sizeof(argv[1]) + 1, 0);
+    size = send(sd, argv[1], strlen(argv[1]) + 1, 0);
     // si aspetta la conferma della registrazione
     size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
     // TODO: Gestire size < 0
@@ -64,14 +64,14 @@ int main(int argc, char **argv){
 
         printf("%s\n", buf);
 
-        if(strcmp(in_buf, "QUIT") == 0){
+        if(strcmp(in_buf, "QUIT\n") == 0){
             return 0;
         }
 
         if (strcmp(in_buf, "CARD_CREATE\n") == 0) {
             printf("> ");
             memset(in_buf, 0, sizeof(in_buf));
-            fgets(in_buf, strlen(in_buf) + 1, 0);
+            fgets(in_buf, strlen(in_buf) + 1, stdin);
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) {
                 printf("Connessione chiusa dal server\n");
