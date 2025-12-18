@@ -176,50 +176,49 @@ void lavagna_card_change(id_t id, id_t src, id_t dest){
 }
 
 
-void lavagna_stampa(){
-    printf("\n%-30s | %-30s | %-30s\n", "TO DO", "DOING", "DONE");
-    printf("-------------------------------+--------------------------------+------------------------------\n");
+void lavagna_stampa(char* buf, size_t max_len){
+   /**
+    * La stampa della lavagna viene fatta in modo particolare
+    * 
+    * 
+    */
 
-    card_t* curr[3];
-    for(int i=0; i<3; i++) curr[i] = lavagna.cards[i];
-
-    while(curr[0] != NULL || curr[1] != NULL || curr[2] != NULL) {
-        // Print IDs
-        for(int i=0; i<3; i++) {
-            if(curr[i] != NULL) {
-                printf("ID: %-26d", curr[i]->id);
-            } else {
-                printf("%-30s", "");
-            }
-            if(i < 2) printf(" | ");
-        }
-        printf("\n");
-
-        // Print Descriptions
-        for(int i=0; i<3; i++) {
-            if(curr[i] != NULL) {
-                char buffer[27];
-                const char* text = curr[i]->testo_attivita ? curr[i]->testo_attivita : "";
-                strncpy(buffer, text, 26);
-                buffer[26] = '\0';
-                if(strlen(text) > 26) {
-                    buffer[23] = '.'; buffer[24] = '.'; buffer[25] = '.';
-                }
-                printf("%-30s", buffer);
-            } else {
-                printf("%-30s", "");
-            }
-            if(i < 2) printf(" | ");
-        }
-        printf("\n");
-        
-        printf("-------------------------------+--------------------------------+------------------------------\n");
-
-        // Advance pointers
-        for(int i=0; i<3; i++) {
-            if(curr[i] != NULL) curr[i] = curr[i]->next_card;
-        }
+    for (int i = 0; i < 3; i++) {
+        pthread_mutex_lock(&lavagna.sem_cards[i]);
     }
+    
+
+    size_t used = 0;
+    int written;
+
+    // pulizia del buffer
+    memset(buf, 0, max_len);
+
+    // concatenazione messaggio
+    written = snprintf(
+        buf, 
+        max_len, 
+        "|------------------------------|\n|---------------TODO---------------|\n|------------------------------|"
+    );
+
+    used += written;
+
+    card_t* list = lavagna.cards[0];
+    while (list != NULL) {
+        written = snprintf(
+            buf + used,
+            max_len,
+            "\t- %s",
+            list->testo_attivita
+        );
+        used += written;
+    }
+    
+    
+    for (int i = 0; i < 3; i++) {
+        pthread_mutex_lock(&lavagna.sem_cards[i]);
+    }
+
 }
 
 
