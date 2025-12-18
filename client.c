@@ -9,6 +9,7 @@
 
 
 int main(int argc, char **argv){
+    printf("Qui ci arrivo\n");
     // Blocco della possibilità di fare CTRL + C all'utente
     signal(SIGINT, SIG_IGN);
 
@@ -25,7 +26,7 @@ int main(int argc, char **argv){
 
     // Controllare che quella passata sia una porta e sia giusta
     if (atoi(argv[1]) < 5678) {
-        printf("ERRORE: Non è possibile registrarsi a questa porta");        
+        printf("ERRORE: Non è possibile registrarsi a questa porta\n");        
         //return 0;
     }
     
