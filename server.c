@@ -76,7 +76,7 @@ void* manage_request(void* arg){
         
         if (strcmp(buf, "CARD_CREATE\n") == 0) {
             memset(buf, 0, sizeof(buf));
-            send(user_sd, "> INSERISCI DESCRIZIONE PER LA CARD [massimo 255 caratteri]\n>", 62, 0);
+            send(user_sd, "> INSERISCI DESCRIZIONE PER LA CARD [massimo 255 caratteri]\n", 62, 0);
             size = recv(user_sd, buf, MAX_BUF_SIZE, 0);
             if (size <0 ) {
                 printf("Huston we have a problem\n");

@@ -69,6 +69,7 @@ int main(int argc, char **argv){
         }
 
         if (strcmp(in_buf, "CARD_CREATE\n") == 0) {
+            printf("> ");
             memset(in_buf, 0, sizeof(in_buf));
             fgets(in_buf, strlen(in_buf) + 1, 0);
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
