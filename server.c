@@ -169,7 +169,7 @@ void* card_handler(void* arg){
                         lavagna_move_card_to_head(to_move, 1);
                         pthread_mutex_lock(&lavagna.sem_cards[0]);
 
-                        send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
+                        //send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
                         break;
                     }
                 }
