@@ -8,6 +8,8 @@
 #include <signal.h>
 
 
+pthread_mutex_t sem_display;
+
 int main(int argc, char **argv){
     if (argc < 2) {
         printf("Usage: %s <port>\n", argv[0]);
@@ -15,6 +17,8 @@ int main(int argc, char **argv){
     }
     // Blocco della possibilità di fare CTRL + C all'utente
     signal(SIGINT, SIG_IGN);
+
+    pthread_mutex_init(&sem_display, NULL);
 
     int ret, sd;
     struct sockaddr_in sv_addr;

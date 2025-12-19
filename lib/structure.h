@@ -47,6 +47,7 @@ typedef struct card card_t;
 struct user {
     uint16_t port;
     int id;
+    int sock_id;
 };
 
 typedef struct user user_t;

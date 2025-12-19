@@ -272,7 +272,7 @@ void lavagna_stampa(char* buf, size_t max_len){
  * @param port la porta del socket su cui l'utente vuole registrarsi
  * @return ritorna 0 in caso di successo, ritorna 1 in caso di errore.
 */
-bool_t lavagna_hello(uint16_t port){
+bool_t lavagna_hello(uint16_t port, int sock_id){
     // la funzione prende entrambi il lock sul semaforo per gli utenti connessi
     pthread_mutex_lock(&lavagna.conn_user_sem);
 
@@ -287,6 +287,8 @@ bool_t lavagna_hello(uint16_t port){
     for (int i = 0; i < MAX_USER; i++) {
         if (lavagna.utenti_registrati[i].port == 0) {
             lavagna.utenti_registrati[i].port = port;
+            lavagna.utenti_registrati[i].sock_id = sock_id;
+            lavagna.utenti_registrati[i].id = 0;
             break;
         }
     }

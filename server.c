@@ -13,6 +13,11 @@ int main(){
     // inizializzazione della lavagna
     lavagna_init();
 
+    // creazione del socket per la gestione dell'assegnamento delle card
+    pthread_t scheduler_tid;
+    pthread_create(&scheduler_tid, NULL, card_handler, NULL);
+    pthread_detach(scheduler_tid);
+
     int ret, sd;
     socklen_t len;
     
@@ -76,7 +81,7 @@ void* manage_request(void* arg){
         close(user_sd);
         pthread_exit(NULL);
     }
-    lavagna_hello(port);
+    lavagna_hello(port, user_sd);
     send(user_sd, "ok", strlen("ok") + 1, 0);
     printf("registrato utente alla porta %d\n", port);
 
@@ -138,18 +143,8 @@ e successivamente manda un messaggio al client chiedendo conferma sul fatto che 
 void* card_handler(void* arg){
     int port = 0;
     while (1) {
-        for (int i = 0; i < MAX_USER; i++) {
-            
-            
-            /**
-             * Se la card è assegnata la ignora
-             * Se la card non è assegnata la assegna
-             *      - utilizza la funzione che associa l'utente ad una card
-             *      - iniva all'utente un messaggio di conferma
-             *      
-             */
-        }
-        
+        sleep(5);
+        printf("Sono sveglio");
     }
     
 }
