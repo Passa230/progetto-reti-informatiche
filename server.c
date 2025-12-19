@@ -152,6 +152,8 @@ void* card_handler(void* arg){
             }
             
         }
+
+        pthread_mutex_unlock(&lavagna.sem_cards[0]);
         
 
         // INCREMENTO DEI TIMER
