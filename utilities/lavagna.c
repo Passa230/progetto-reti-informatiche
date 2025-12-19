@@ -12,6 +12,17 @@ lavagna_t lavagna;
 // FUNZIONI UTILITA PER LA LAVAGNA
 
 
+/**
+ * @brief funzione che permette di comparare le porte degli utenti in modo
+ * da riordinarli
+ */
+int compare_users(const void *a, const void *b) {
+    user_t *userA = (user_t *)a;
+    user_t *userB = (user_t *)b;
+    
+    // Ritorna la differenza tra le porte
+    return (userA->port - userB->port);
+}
 
 /***
  * Funzione che genera una nuova card. 
@@ -180,12 +191,6 @@ void lavagna_card_change(id_t id, id_t src, id_t dest){
 
 
 void lavagna_stampa(char* buf, size_t max_len){
-   /**
-    * La stampa della lavagna viene fatta in modo particolare
-    * 
-    * 
-    */
-
     for (int i = 0; i < 3; i++) {
         pthread_mutex_lock(&lavagna.sem_cards[i]);
     }
@@ -284,14 +289,17 @@ bool_t lavagna_hello(uint16_t port, int sock_id){
     
     lavagna.connected_users++;
     
-    for (int i = 0; i < MAX_USER; i++) {
-        if (lavagna.utenti_registrati[i].port == 0) {
-            lavagna.utenti_registrati[i].port = port;
-            lavagna.utenti_registrati[i].sock_id = sock_id;
-            lavagna.utenti_registrati[i].id = 0;
-            break;
-        }
-    }
+    lavagna.utenti_registrati[lavagna.connected_users].port = port;
+    lavagna.utenti_registrati[lavagna.connected_users].sock_id = sock_id;
+    lavagna.utenti_registrati[lavagna.connected_users].id = 0;
+
+    // funzione di sorting 
+    qsort(
+            lavagna.utenti_registrati, 
+            lavagna.connected_users, 
+            sizeof(user_t), 
+            compare_users
+        );
 
     pthread_mutex_unlock(&lavagna.conn_user_sem);   
     return TRUE;
@@ -306,14 +314,24 @@ bool_t lavagna_hello(uint16_t port, int sock_id){
  */
 bool_t lavagna_quit(uint16_t port){
     pthread_mutex_lock(&lavagna.conn_user_sem);
-    lavagna.connected_users--;
 
-    for (int i = 0; i < MAX_USER; i++) {
+    int i, found = -1;
+    for (i = 0; i < lavagna.connected_users; i++) {
         if (lavagna.utenti_registrati[i].port == port) {
-            lavagna.utenti_registrati[i].port = 0;
+            found = i;
             break;
         }
+    }    
+
+    if (found != -1) {
+        for (i = found; i < lavagna.connected_users - 1; i++) {
+            lavagna.utenti_registrati[i] = lavagna.utenti_registrati[i + 1];
+        }
+
+        lavagna.connected_users--;
+        lavagna.utenti_registrati[lavagna.connected_users].port = 0;
     }
+    
 
     pthread_mutex_unlock(&lavagna.conn_user_sem);
 

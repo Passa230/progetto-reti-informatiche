@@ -136,15 +136,29 @@ void* manage_request(void* arg){
 }
 
 
-/*
-IDEA: Per ogni card creata si crea un nuovo thread che la assegna e attende un certo intervallo di tempo
-e successivamente manda un messaggio al client chiedendo conferma sul fatto che stia ancora aspettando il lavoro
-*/
+/**
+ * @brief thread per la gestione delle card. Ogni k secondi il thread controlla se è possibile assegnare
+ * delle nuove card a qualche utente, inoltre controlla se il tempo passato dall'ultimo assegnamento di una
+ * particolare card supera un certo limite superiore e in tal caso manda un PING al client
+ */
 void* card_handler(void* arg){
     int port = 0;
     while (1) {
+        // ASSEGNAMENTO DELLE CARD
+        pthread_mutex_lock(&lavagna.sem_cards[0]);
+        for (card_t* card = &lavagna.cards[0]; card != NULL; card = card->next_card) {
+            if (card->utente_assegnatario == 0) {
+                // Si deve cercare un utente libero
+            }
+            
+        }
+        
+
+        // INCREMENTO DEI TIMER
+
+        // NOTIFICA PING
+        printf("Sto per andare a dormire\n");
         sleep(5);
-        printf("Sono sveglio");
     }
     
 }

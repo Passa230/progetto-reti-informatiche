@@ -4,6 +4,8 @@
 #include <structure.h>
 #include <generic.h>
 
+extern lavagna_t lavagna;
+
 /**
  * Funzione che genera una nuova card. 
  * @param testo_attivita descrive l'attività relativa alla card.
