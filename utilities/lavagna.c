@@ -290,16 +290,17 @@ bool_t lavagna_hello(uint16_t port, int sock_id){
     lavagna.utenti_registrati[lavagna.connected_users].port = port;
     lavagna.utenti_registrati[lavagna.connected_users].sock_id = sock_id;
     lavagna.utenti_registrati[lavagna.connected_users].id = 0;
-    
+    pthread_mutex_init(&lavagna.utenti_registrati[lavagna.connected_users].sock_mutex, NULL);
+
     lavagna.connected_users++;
 
     // funzione di sorting 
     qsort(
-            lavagna.utenti_registrati, 
-            lavagna.connected_users, 
-            sizeof(user_t), 
-            compare_users
-        );
+        lavagna.utenti_registrati, 
+        lavagna.connected_users, 
+        sizeof(user_t), 
+        compare_users
+    );
 
     pthread_mutex_unlock(&lavagna.conn_user_sem);   
     return TRUE;

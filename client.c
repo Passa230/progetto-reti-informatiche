@@ -16,7 +16,7 @@ int main(int argc, char **argv){
         return 1;
     }
     // Blocco della possibilità di fare CTRL + C all'utente
-    signal(SIGINT, SIG_IGN);
+    //signal(SIGINT, SIG_IGN);
 
     pthread_mutex_init(&sem_display, NULL);
 
