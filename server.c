@@ -158,7 +158,7 @@ void* card_handler(void* arg){
                 pthread_mutex_lock(&lavagna.conn_user_sem);
                 for (int i = 0; i < lavagna.connected_users; i++) {
                     if (lavagna.utenti_registrati[i].id == 0) {
-                        card_t* to_move = lavagna_card_remove(to_move->id, 0);
+                        card_t* to_move = lavagna_card_remove(card->id, 0);
                         to_move->utente_assegnatario = lavagna.utenti_registrati[i].port;
                         lavagna.utenti_registrati[i].id = to_move->id;
 
