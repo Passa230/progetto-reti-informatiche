@@ -66,7 +66,7 @@ int main(int argc, char **argv){
     }
 
     pthread_t t_listener;
-    pthread_create(t_listener, NULL, client_listener, argv[1]);
+    pthread_create(&t_listener, NULL, client_listener, argv[1]);
     
     
     uint16_t connessione_attiva = 1;
