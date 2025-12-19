@@ -171,6 +171,8 @@ void* card_handler(void* arg){
                     }
                 }
                 pthread_mutex_unlock(&lavagna.conn_user_sem);
+            } else {
+                card = card->next_card;
             }
         }
         pthread_mutex_unlock(&lavagna.sem_cards[0]);
