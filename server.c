@@ -152,7 +152,7 @@ void* card_handler(void* arg){
         printf("entro nel ciclo!\n");
         pthread_mutex_lock(&lavagna.sem_cards[0]);
         printf("Preso il primo lock!\n");
-        card_t* card = &lavagna.cards[0];
+        card_t* card = lavagna.cards[0];
         while (card != NULL) {
             if (card->utente_assegnatario == 0 && card->utente_creatore != 0) {
                 pthread_mutex_lock(&lavagna.conn_user_sem);
