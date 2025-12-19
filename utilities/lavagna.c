@@ -287,11 +287,11 @@ bool_t lavagna_hello(uint16_t port, int sock_id){
         return FALSE;
     }
     
-    lavagna.connected_users++;
-    
     lavagna.utenti_registrati[lavagna.connected_users].port = port;
     lavagna.utenti_registrati[lavagna.connected_users].sock_id = sock_id;
     lavagna.utenti_registrati[lavagna.connected_users].id = 0;
+    
+    lavagna.connected_users++;
 
     // funzione di sorting 
     qsort(
