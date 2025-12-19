@@ -155,10 +155,13 @@ void* card_handler(void* arg){
                 pthread_mutex_lock(&lavagna.conn_user_sem);
                 for (int i = 0; i < lavagna.connected_users; i++) {
                     if (lavagna.utenti_registrati[i].id == 0) {
-                        card->utente_assegnatario = lavagna.utenti_registrati[i].port;
-                        lavagna.utenti_registrati[i].id = card->id;
+                        card_t* to_move = lavagna_card_remove(card, 0);
+                        to_move->utente_assegnatario = lavagna.utenti_registrati[i].port;
+                        lavagna.utenti_registrati[i].id = to_move->id;
                         sprintf(msg, "ASYNC: HANDLE_CARD %d %s\n", 
                                 card->id, card->testo_attivita);
+                        lavagna_move_card_to_head(to_move, 1);
+                        printf("CARD ASSEGNATA!\n");
                         send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
                     }
                 }
