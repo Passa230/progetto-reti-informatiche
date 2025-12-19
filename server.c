@@ -143,7 +143,7 @@ void* manage_request(void* arg){
  */
 void* card_handler(void* arg){
     int port = 0;
-    char* msg[MAX_BUF_SIZE];
+    char msg[MAX_BUF_SIZE];
     
 
     memset(msg, 0, sizeof(msg));
@@ -155,25 +155,27 @@ void* card_handler(void* arg){
         card_t* card = &lavagna.cards[0];
         while (card != NULL) {
             if (card->utente_assegnatario == 0 && card->utente_creatore != 0) {
-                printf("Trovata card non assegnata!\n");
                 pthread_mutex_lock(&lavagna.conn_user_sem);
-                printf("Preso il secondo lock!\n");
                 for (int i = 0; i < lavagna.connected_users; i++) {
                     if (lavagna.utenti_registrati[i].id == 0) {
-                        
-                        card_t* to_move = lavagna_card_remove(card, 0);
+                        card_t* to_move = lavagna_card_remove(to_move->id, 0);
                         to_move->utente_assegnatario = lavagna.utenti_registrati[i].port;
                         lavagna.utenti_registrati[i].id = to_move->id;
-                        sprintf(msg, "ASYNC: HANDLE_CARD %d %s\n", 
-                                to_move->id, to_move->testo_attivita);
+
+                        snprintf(msg, sizeof(msg), "ASYNC: HANDLE_CARD %d %s\n", 
+                                        to_move->id, to_move->testo_attivita);
+
+                        pthread_mutex_unlock(&lavagna.sem_cards[0]); 
                         lavagna_move_card_to_head(to_move, 1);
+                        pthread_mutex_lock(&lavagna.sem_cards[0]);
+
                         send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
+                        break;
                     }
                 }
                 pthread_mutex_unlock(&lavagna.conn_user_sem);
-            } else {
-                card = card->next_card;
-            }
+            } 
+            card = card->next_card;
         }
         pthread_mutex_unlock(&lavagna.sem_cards[0]);
         

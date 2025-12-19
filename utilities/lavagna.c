@@ -153,7 +153,7 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
         return NULL;
     }
     
-    pthread_mutex_lock(&lavagna.sem_cards[list]);
+    //pthread_mutex_lock(&lavagna.sem_cards[list]);
     card_t* curr = lavagna.cards[list];
     card_t* prev = NULL;
     while (curr != NULL) {
@@ -165,14 +165,14 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
                 prev->next_card = curr->next_card;
             }
             //card_delete(&curr);
-            pthread_mutex_unlock(&lavagna.sem_cards[list]);
+            //pthread_mutex_unlock(&lavagna.sem_cards[list]);
             return curr;
         }
         prev = curr;
         curr = curr->next_card;
     }
 
-    pthread_mutex_unlock(&lavagna.sem_cards[list]);
+    //pthread_mutex_unlock(&lavagna.sem_cards[list]);
     return NULL;
 }
 
@@ -186,10 +186,12 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
  * @param dst colonna dove si vuole muovere la card
  */
 void lavagna_card_change(id_t id, id_t src, id_t dest){
-    
+
+    pthread_mutex_lock(&lavagna.sem_cards[src]);
     card_t* card = lavagna_card_remove(id, src);
     card_state_change(card, dest);    
     lavagna_move_card_to_head(card, dest);
+    pthread_mutex_unlock(&lavagna.sem_cards[src]);
 
 }
 
@@ -432,7 +434,7 @@ void lavagna_user_list(char* buf, size_t max_len){
                 buf + used,
                 max_len - used,
                 "|---       %d        ---|\n",
-                lavagna.utenti_registrati[i]
+                lavagna.utenti_registrati[i].port
             );
 
             if (written < 0 || written >= max_len - used)
