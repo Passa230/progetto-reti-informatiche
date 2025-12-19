@@ -1,4 +1,8 @@
 #include <pthread.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -277,7 +281,7 @@ void lavagna_stampa(char* buf, size_t max_len){
  * @param port la porta del socket su cui l'utente vuole registrarsi
  * @return ritorna 0 in caso di successo, ritorna 1 in caso di errore.
 */
-bool_t lavagna_hello(uint16_t port, int sock_id){
+bool_t lavagna_hello(uint16_t port){
     // la funzione prende entrambi il lock sul semaforo per gli utenti connessi
     pthread_mutex_lock(&lavagna.conn_user_sem);
 
@@ -287,10 +291,21 @@ bool_t lavagna_hello(uint16_t port, int sock_id){
         return FALSE;
     }
     
+    // Si crea la connessione Server --> Client
+    struct sockaddr_in async_addr;
+    int sd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&async_addr, 0, sizeof(async_addr)); 
+    async_addr.sin_family = AF_INET;
+    async_addr.sin_port = htons(port);
+    inet_pton(AF_INET, "127.0.0.1", &async_addr.sin_addr);
+
+    int ret = connect(sd, (struct sockaddr*)&async_addr, sizeof(async_addr));
+
+    // Fine della connessione
+
     lavagna.utenti_registrati[lavagna.connected_users].port = port;
-    lavagna.utenti_registrati[lavagna.connected_users].sock_id = sock_id;
+    lavagna.utenti_registrati[lavagna.connected_users].sock_id = sd;
     lavagna.utenti_registrati[lavagna.connected_users].id = 0;
-    pthread_mutex_init(&lavagna.utenti_registrati[lavagna.connected_users].sock_mutex, NULL);
 
     lavagna.connected_users++;
 

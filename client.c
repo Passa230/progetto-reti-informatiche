@@ -4,11 +4,14 @@
 #include <netinet/in.h>
 #include <generic.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <signal.h>
 
 
 pthread_mutex_t sem_display;
+
+void* client_listener(void* arg);
 
 int main(int argc, char **argv){
     if (argc < 2) {
@@ -16,7 +19,7 @@ int main(int argc, char **argv){
         return 1;
     }
     // Blocco della possibilità di fare CTRL + C all'utente
-    //signal(SIGINT, SIG_IGN);
+    // signal(SIGINT, SIG_IGN);
 
     pthread_mutex_init(&sem_display, NULL);
 
@@ -37,9 +40,7 @@ int main(int argc, char **argv){
         printf("ERRORE: Non è possibile registrarsi a questa porta\n");        
         return 0;
     }
-    
-    printf("Qui ci arrivo\n");
-    
+        
     sv_addr.sin_port = htons(5678);
 
     inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
@@ -64,6 +65,8 @@ int main(int argc, char **argv){
         return 1;
     }
 
+    pthread_t t_listener;
+    pthread_create(t_listener, NULL, client_listener, argv[1]);
     
     
     uint16_t connessione_attiva = 1;
@@ -109,6 +112,49 @@ int main(int argc, char **argv){
         }
 
 
+    }
+    
+}
+
+
+void* client_listener(void* arg){
+    int port = atoi((char *)arg), ret, len;
+    char buf[MAX_BUF_SIZE];
+
+
+    struct sockaddr_in async_addr;
+    int sd = socket(AF_INET, SOCK_STREAM, 0);
+    memset(&async_addr, 0, sizeof(async_addr)); 
+    async_addr.sin_family = AF_INET;
+    async_addr.sin_port = htons(port);
+    inet_pton(AF_INET, "127.0.0.1", &async_addr.sin_addr);
+
+
+    ret = bind(sd, (struct sockaddr*) &async_addr, sizeof(async_addr));
+    if (ret < 0) {
+        perror("bind failed");
+        close(sd);
+        pthread_exit(NULL);
+    }
+    ret = listen(sd, 20);
+    if (ret < 0) {
+        perror("listen failed");
+        close(sd);
+        pthread_exit(NULL);
+    }
+    len = sizeof(async_addr);  
+    int new_sd = accept(sd, NULL, NULL);
+
+    // Si deve mettere in ascolto sulla porta client
+    while (1) {
+        
+        ssize_t size = recv(new_sd, buf, MAX_BUF_SIZE - 1, 0);
+
+        pthread_mutex_lock(&sem_display);
+
+        printf(" >> NOTIFICA: %s", buf);
+
+        pthread_mutex_unlock(&sem_display);
     }
     
 }

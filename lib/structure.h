@@ -48,7 +48,6 @@ struct user {
     uint16_t port;
     int id;
     int sock_id;
-    pthread_mutex_t sock_mutex;
 };
 
 typedef struct user user_t;

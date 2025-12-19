@@ -77,7 +77,7 @@ void lavagna_stampa();
  * @param sock_id identificatore del socket utilizzato per la comunicazione
  * @return ritorna 0 in caso di successo, ritorna 1 in caso di errore.
 */
-bool_t lavagna_hello(uint16_t port, int sock_id);
+bool_t lavagna_hello(uint16_t port);
 
 /**
  * @brief funzione che permette all'utente di uscire dalla kanbar. Se l'utente aveva delle carte

@@ -81,7 +81,7 @@ void* manage_request(void* arg){
         close(user_sd);
         pthread_exit(NULL);
     }
-    lavagna_hello(port, user_sd);
+    lavagna_hello(port);
     send(user_sd, "ok", strlen("ok") + 1, 0);
     printf("registrato utente alla porta %d\n", port);
 
@@ -151,17 +151,15 @@ void* card_handler(void* arg){
         // ASSEGNAMENTO DELLE CARD
         pthread_mutex_lock(&lavagna.sem_cards[0]);
         for (card_t* card = &lavagna.cards[0]; card != NULL; card = card->next_card) {
-            if (card->utente_assegnatario == 0) {
+            if (card->utente_assegnatario == 0 && card->utente_creatore != 0) {
                 pthread_mutex_lock(&lavagna.conn_user_sem);
                 for (int i = 0; i < lavagna.connected_users; i++) {
                     if (lavagna.utenti_registrati[i].id == 0) {
                         card->utente_assegnatario = lavagna.utenti_registrati[i].port;
                         lavagna.utenti_registrati[i].id = card->id;
-                        pthread_mutex_lock(&lavagna.utenti_registrati[i].sock_mutex);
                         sprintf(msg, "ASYNC: HANDLE_CARD %d %s\n", 
                                 card->id, card->testo_attivita);
                         send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
-                        pthread_mutex_lock(&lavagna.utenti_registrati[i].sock_mutex);
                     }
                 }
                 pthread_mutex_unlock(&lavagna.conn_user_sem);
