@@ -9,7 +9,8 @@
 #include <signal.h>
 
 
-pthread_mutex_t sem_display;
+char async_buffer[MAX_BUF_SIZE];
+bool_t impeding_notify;
 
 void* client_listener(void* arg);
 
@@ -20,9 +21,6 @@ int main(int argc, char **argv){
     }
     // Blocco della possibilità di fare CTRL + C all'utente
     // signal(SIGINT, SIG_IGN);
-
-    pthread_mutex_init(&sem_display, NULL);
-
     int ret, sd;
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE], lavagna_buf[MAX_SBUF_SIZE];
@@ -68,10 +66,13 @@ int main(int argc, char **argv){
     
     uint16_t connessione_attiva = 1;
     while (connessione_attiva == 1) {
-        pthread_mutex_lock(&sem_display);        
+        if (impeding_notify == TRUE) {
+            printf("%s", async_buffer);
+            impeding_notify = FALSE;
+        }
+        
         printf(">>> ");
         fgets(in_buf, sizeof(in_buf), stdin);
-        pthread_mutex_unlock(&sem_display);
 
         size = send(sd, in_buf, strlen(in_buf) + 1, 0);
         // si attende la risposta dal server 
@@ -84,10 +85,8 @@ int main(int argc, char **argv){
 
         if (strcmp(in_buf, "CARD_CREATE\n") == 0) {
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
-            pthread_mutex_lock(&sem_display);
             printf("%s\n", buf);
             printf("> ");
-            pthread_mutex_unlock(&sem_display);
 
             memset(in_buf, 0, sizeof(in_buf));
             fgets(in_buf, sizeof(in_buf), stdin);
@@ -101,16 +100,11 @@ int main(int argc, char **argv){
 
         if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
             size = recv(sd, lavagna_buf, MAX_SBUF_SIZE, 0);
-            pthread_mutex_lock(&sem_display);
             printf("%s\n", lavagna_buf);
-            pthread_mutex_unlock(&sem_display);
         } else {
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
-            pthread_mutex_lock(&sem_display);
             printf("%s\n", buf);
-            pthread_mutex_unlock(&sem_display);
         }
-        
         
 
         if(strcmp(in_buf, "QUIT\n") == 0){
@@ -162,20 +156,18 @@ void* client_listener(void* arg){
         if (size <= 0) break;
         buf[size] = '\0';
 
-        //pthread_mutex_lock(&sem_display);
-
-        //printf(" >> NOTIFICA: %s", buf);
-
         int id; char testo[MAX_BUF_SIZE];
 
         if (strcmp(buf, "PING") == 0) {
             // SI MANDA PONG --> Card attiva
         } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
-            pthread_mutex_lock(&sem_display);
-            printf(">> NOTIFICA: Card assegnata #%d: %s\n", id, testo);
-            pthread_mutex_unlock(&sem_display);
+            sprintf(async_buffer, ">> NOTIFICA: Card assegnata #%d: %s\n", id, testo);
+            impeding_notify = TRUE;
+            //printf(">> NOTIFICA: Card assegnata #%d: %s\n", id, testo);
         }
         
+
+        while (impeding_notify == TRUE){};
 
         /*
         QUATTRO POSSIBILI MESSAGGI ASINCRONI:
@@ -185,7 +177,6 @@ void* client_listener(void* arg){
             - OKAY          --> Inviato dai client per approvare la card dell'utente  
         */
 
-        //pthread_mutex_unlock(&sem_display);
     }
     
 }
