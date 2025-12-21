@@ -87,9 +87,10 @@ int main(int argc, char **argv){
             pthread_mutex_lock(&sem_display);
             printf("%s\n", buf);
             printf("> ");
+            pthread_mutex_unlock(&sem_display);
+
             memset(in_buf, 0, sizeof(in_buf));
             fgets(in_buf, sizeof(in_buf), stdin);
-            pthread_mutex_unlock(&sem_display);
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) {
                 printf("Connessione chiusa dal server\n");
@@ -161,7 +162,7 @@ void* client_listener(void* arg){
         if (size <= 0) break;
         buf[size] = '\0';
 
-        pthread_mutex_lock(&sem_display);
+        //pthread_mutex_lock(&sem_display);
 
         //printf(" >> NOTIFICA: %s", buf);
 
@@ -184,7 +185,7 @@ void* client_listener(void* arg){
             - OKAY          --> Inviato dai client per approvare la card dell'utente  
         */
 
-        pthread_mutex_unlock(&sem_display);
+        //pthread_mutex_unlock(&sem_display);
     }
     
 }
