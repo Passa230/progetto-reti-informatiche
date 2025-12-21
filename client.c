@@ -29,25 +29,26 @@ int main(int argc, char **argv){
     char in_buf[MAX_BUF_SIZE];
     ssize_t size;
 
-    sd = socket(AF_INET, SOCK_STREAM, 0);
-    printf("Qui ci arrivo\n");
-    
-    memset(&sv_addr, 0, sizeof(sv_addr)); 
-    sv_addr.sin_family = AF_INET ;
-
-    // Controllare che quella passata sia una porta e sia giusta
     if (atoi(argv[1]) < 5678) {
         printf("ERRORE: Non è possibile registrarsi a questa porta\n");        
         return 0;
     }
-        
-    sv_addr.sin_port = htons(5678);
 
-    inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
-    ret = connect(sd, (struct sockaddr*)&sv_addr, sizeof(sv_addr));
+    pthread_t t_listener;
+    pthread_create(&t_listener, NULL, client_listener, argv[1]);
 
-    size = send(sd, argv[1], strlen(argv[1]) + 1, 0);    // si aspetta la conferma della registrazione
+
+    sd = socket(AF_INET, SOCK_STREAM, 0);
     printf("Qui ci arrivo\n");
+    
+    memset(&sv_addr, 0, sizeof(sv_addr)); 
+    sv_addr.sin_family = AF_INET ;        
+    sv_addr.sin_port = htons(5678);
+    inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
+    
+    ret = connect(sd, (struct sockaddr*)&sv_addr, sizeof(sv_addr));
+    size = send(sd, argv[1], strlen(argv[1]) + 1, 0);    // si aspetta la conferma della registrazione
+    // printf("Qui ci arrivo\n");
     
     size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
     if (size <= 0) {
@@ -63,11 +64,7 @@ int main(int argc, char **argv){
         printf("Errore di registrazione\n");
         close(sd);
         return 1;
-    }
-
-    pthread_t t_listener;
-    pthread_create(&t_listener, NULL, client_listener, argv[1]);
-    
+    }    
     
     uint16_t connessione_attiva = 1;
     while (connessione_attiva == 1) {
@@ -142,17 +139,40 @@ void* client_listener(void* arg){
         close(sd);
         pthread_exit(NULL);
     }
-    len = sizeof(async_addr);  
-    int new_sd = accept(sd, NULL, NULL);
+    len = sizeof(async_addr);
+
+    int new_sd;
+    while ((new_sd = accept(sd, NULL, NULL)) < 0) {
+        perror("accept");
+    }
 
     // Si deve mettere in ascolto sulla porta client
     while (1) {
         
         ssize_t size = recv(new_sd, buf, MAX_BUF_SIZE - 1, 0);
+        if (size <= 0) break;
+        buf[size] = '\0';
 
         pthread_mutex_lock(&sem_display);
 
         printf(" >> NOTIFICA: %s", buf);
+
+        int id; char testo[MAX_BUF_SIZE];
+
+        if (strcmp(buf, "PING") == 0) {
+            // SI MANDA PONG --> Card attiva
+        } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
+            printf("Card assegnata #%d: %s\n", id, testo);
+        }
+        
+
+        /*
+        QUATTRO POSSIBILI MESSAGGI ASINCRONI:
+            - PING          --> Inviato dal server
+            - ASSEGNAMENTO  --> Inviato dal server
+            - ACK_REQUEST   --> Inviato da un client che vuole una conferma
+            - OKAY          --> Inviato dai client per approvare la card dell'utente  
+        */
 
         pthread_mutex_unlock(&sem_display);
     }
