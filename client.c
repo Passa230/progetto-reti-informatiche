@@ -9,7 +9,7 @@
 #include <signal.h>
 
 
-char async_buffer[MAX_BUF_SIZE];
+char async_buffer[300];
 bool_t impeding_notify;
 
 void* client_listener(void* arg);
