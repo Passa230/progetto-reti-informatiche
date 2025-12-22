@@ -197,21 +197,33 @@ void* card_handler(void* arg){
 
             if (u->last_ping == 0) {
                 if (difftime(now, c->ultimo_aggiornamento) >= PING_TIMEOUT) {
-                    send(u->sock_id, "PING", 10, 0);
+                    send(u->sock_id, "PING_USER", 10, 0);
                     u->last_ping = now;
                     printf("Inviato ping all'utente alla porta %d\n", u->port);
                 }
             } else {
                 char tmp[16];
                 if (recv(u->sock_id, tmp, sizeof(tmp), MSG_DONTWAIT) > 0) {
-                    if (strcmp(tmp, "PONG") == 0) {
+                    if (strcmp(tmp, "PONG_LAVAGNA") == 0) {
                         u->last_ping = 0;
                         c->ultimo_aggiornamento = now;
                     }
                 } else if (difftime(now, u->last_ping) > 30){
                     printf("TIMEOUT! L'utente %d non ha risposto. Sposto card in To Do\n", u->port);
                     c->utente_assegnatario = 0;
+                    pthread_mutex_unlock(&lavagna.conn_user_sem);
+
+                    pthread_mutex_lock(&lavagna.sem_cards[1]);
+                    lavagna_card_remove(c->id, 1);
+                    pthread_mutex_unlock(&lavagna.sem_cards[1]);
+
                     lavagna_move_card_to_head(c, 0);
+
+                    char visualizza[MAX_SBUF_SIZE];
+                    lavagna_stampa(visualizza, MAX_SBUF_SIZE);
+                    printf("%s\n", visualizza);
+
+                    pthread_mutex_lock(&lavagna.conn_user_sem);
                     u->id = 0;
                     u->last_ping = 0;
                 }
@@ -221,6 +233,7 @@ void* card_handler(void* arg){
             
         }
         pthread_mutex_unlock(&lavagna.conn_user_sem);
+        
 
         
     }
