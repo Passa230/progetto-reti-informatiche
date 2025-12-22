@@ -116,17 +116,24 @@ void* manage_request(void* arg){
             send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
-            send(user_sd, out_buf, MAX_BUF_SIZE + 1, 0);
+    
+            // CORREZIONE 1: Invia solo i byte della stringa + terminatore, non 1023 byte
+            send(user_sd, out_buf, strlen(out_buf) + 1, 0); 
 
             uint16_t user_buf[MAX_USER];
             memset(user_buf, 0, sizeof(user_buf));
             int user_len = lavagna_user_list_to_vec(user_buf);
-            int user_len_net = htonl(user_len);
+            
+            // CORREZIONE 2: Converti ogni porta in Network Order (htons)
             for(int i = 0; i < user_len; i++) {
-                user_buf[i] = htons(user_buf[i]); // Fondamentale per le porte!
+                user_buf[i] = htons(user_buf[i]);
             }
+
+            // CORREZIONE 3: Converti la lunghezza in Network Order (htonl)
+            int user_len_net = htonl(user_len);
+            
             send(user_sd, &user_len_net, sizeof(user_len_net), 0);
-            send(user_sd, user_buf, sizeof(uint16_t)*user_len, 0);
+            send(user_sd, user_buf, sizeof(uint16_t) * user_len, 0);
         } else if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
             char lavagna_buf[MAX_SBUF_SIZE];
             lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);

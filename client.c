@@ -132,14 +132,19 @@ int main(int argc, char **argv){
         } else if (strcmp(in_buf, "SHOW_USR_LIST\n") == 0){
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
             printf("%s\n", buf);
-            recv(sd, &user_len, sizeof(user_len), 0);
-            int num_utenti = ntohl(user_len);
-            recv(sd, user_buf, sizeof(uint16_t) * num_utenti, 0);
-            printf("> [DATI] Utenti disponibile: %d", num_utenti);
-            for (int i = 0; i < num_utenti; i++) {
-                uint16_t porta_corretta = ntohs(user_buf[i]); // <--- CONVERSIONE QUI
-                printf("  - Utente sulla porta: %d\n", porta_corretta);
-                user_buf[i] = porta_corretta;
+            uint32_t net_len;
+            recv(sd, &net_len, sizeof(uint32_t), 0);
+            user_len = ntohl(net_len);
+            printf("> [DATI] Utenti disponibile: %d", user_len);
+            
+            if (user_len > 0) {
+                recv(sd, user_buf, sizeof(uint16_t) * user_len, 0);
+                
+                for (int i = 0; i < user_len; i++) {
+                    uint16_t porta_corretta = ntohs(user_buf[i]); // <--- CONVERSIONE QUI
+                    printf("  - Utente sulla porta: %d\n", porta_corretta);
+                    user_buf[i] = porta_corretta;
+                }
             }
         } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
             size = recv(sd, lavagna_buf, MAX_SBUF_SIZE, 0);
