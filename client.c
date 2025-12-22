@@ -7,10 +7,25 @@
 #include <stdint.h>
 #include <string.h>
 #include <signal.h>
+#include <structure.h>
 
 
-char async_buffer[300];
-bool_t impeding_notify;
+pthread_mutex_t queue_mutex;
+notifica_t n_queue[MAX_NOTIFICATIONS];
+int head = 0, tail = 0, count = 0;
+
+void enqueue(char* nuovo_msg) {
+    pthread_mutex_lock(&queue_mutex);
+    if (count < MAX_NOTIFICATIONS) {
+        strncpy(n_queue[tail].messagge, nuovo_msg, MAX_BUF_SIZE - 1);
+        n_queue[tail].messagge[MAX_BUF_SIZE - 1] = '\0'; 
+
+        tail = (tail + 1) % MAX_NOTIFICATIONS;
+        count++;
+    }
+    pthread_mutex_unlock(&queue_mutex);
+}
+
 
 void* client_listener(void* arg);
 
@@ -32,6 +47,7 @@ int main(int argc, char **argv){
         return 0;
     }
 
+    pthread_mutex_init(&queue_mutex, NULL);
     pthread_t t_listener;
     pthread_create(&t_listener, NULL, client_listener, argv[1]);
 
@@ -66,10 +82,13 @@ int main(int argc, char **argv){
     
     uint16_t connessione_attiva = 1;
     while (connessione_attiva == 1) {
-        if (impeding_notify == TRUE) {
-            printf("%s", async_buffer);
-            impeding_notify = FALSE;
+        pthread_mutex_lock(&queue_mutex);
+        while (count > 0) {
+            printf("\n[NOTIFICA] %s\n", n_queue[head].messagge);
+            head = (head + 1) % MAX_NOTIFICATIONS;
+            count--;
         }
+        pthread_mutex_unlock(&queue_mutex);
         
         printf(">>> ");
         fgets(in_buf, sizeof(in_buf), stdin);
@@ -119,7 +138,7 @@ int main(int argc, char **argv){
 
 void* client_listener(void* arg){
     int port = atoi((char *)arg), ret, len;
-    char buf[MAX_BUF_SIZE];
+    char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
 
 
     struct sockaddr_in async_addr;
@@ -162,20 +181,9 @@ void* client_listener(void* arg){
             // SI MANDA PONG --> Card attiva
         } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
             sprintf(async_buffer, ">> NOTIFICA: Card assegnata #%d: %s\n", id, testo);
-            impeding_notify = TRUE;
-            //printf(">> NOTIFICA: Card assegnata #%d: %s\n", id, testo);
+            enqueue(async_buffer);
+            memset(async_buffer, 0, sizeof(async_buffer));
         }
-        
-
-        while (impeding_notify == TRUE){};
-
-        /*
-        QUATTRO POSSIBILI MESSAGGI ASINCRONI:
-            - PING          --> Inviato dal server
-            - ASSEGNAMENTO  --> Inviato dal server
-            - ACK_REQUEST   --> Inviato da un client che vuole una conferma
-            - OKAY          --> Inviato dai client per approvare la card dell'utente  
-        */
 
     }
     

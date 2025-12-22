@@ -85,3 +85,12 @@ struct lavagna{
 
 typedef struct lavagna lavagna_t;
 
+/**
+ * @struct notifica
+ * @brief Struttura che identifica una notifica che può essere ricevuta dal client e gestita 
+ */
+struct notifica {
+    char messagge[MAX_NOT_BUF_SIZE];
+};
+
+typedef struct notifica notifica_t;
