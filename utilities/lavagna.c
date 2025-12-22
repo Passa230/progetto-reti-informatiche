@@ -406,7 +406,7 @@ bool_t lavagna_is_user_registerd(uint16_t port){
  * @return TRUE se l'operazione è riuscita, FALSE altrimenti
  */
 
-void lavagna_user_list(char* buf, size_t max_len){
+int lavagna_user_list(char* buf, size_t max_len){
 
     // lock sul semaforo degli utenti connessi
     pthread_mutex_lock(&lavagna.conn_user_sem);
@@ -450,6 +450,7 @@ void lavagna_user_list(char* buf, size_t max_len){
     }
     
     pthread_mutex_unlock(&lavagna.conn_user_sem);
+    return used;
 }
 
 

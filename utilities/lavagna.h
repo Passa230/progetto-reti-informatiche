@@ -110,7 +110,7 @@ bool_t lavagna_is_user_registerd(uint16_t port);
  * @param max_len Dimensione massima del buffer
  * @return TRUE se l'operazione è riuscita, FALSE altrimenti
  */
-void lavagna_user_list(char* buf, size_t max_len);
+int lavagna_user_list(char* buf, size_t max_len);
 
 /**
  * @brief funzione che permette di trovare una carta passando come argomento 

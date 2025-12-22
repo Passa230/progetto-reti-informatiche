@@ -130,8 +130,15 @@ int main(int argc, char **argv){
              */
         
         } else if (strcmp(in_buf, "SHOW_USR_LIST\n") == 0){
-            size = recv(sd, buf, MAX_BUF_SIZE, 0);
+            int list_len = 0;
+            size = recv(sd, &list_len, sizeof(list_len), 0);
+            list_len = ntohl(list_len);
+
+            memset(buf, 0, MAX_BUF_SIZE);
+            size = recv(sd, buf, list_len, 0);
             printf("%s\n", buf);
+
+            
             uint32_t net_len;
             recv(sd, &net_len, sizeof(uint32_t), 0);
             user_len = ntohl(net_len);
