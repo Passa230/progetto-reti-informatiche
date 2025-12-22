@@ -469,7 +469,7 @@ card_t* lavagna_trova_card_per_id(int id){
 }
 
 
-int lavagna_user_list_to_vec(int* buf){
+int lavagna_user_list_to_vec(uint16_t* buf){
     pthread_mutex_lock(&lavagna.conn_user_sem);
 
     for (int i = 0; i < lavagna.connected_users; i++) {
