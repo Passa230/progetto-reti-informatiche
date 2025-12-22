@@ -141,7 +141,7 @@ void* client_listener(void* arg){
     char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
 
 
-    struct sockaddr_in async_addr;
+    struct sockaddr_in async_addr, async_addr_to_server;
     int sd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&async_addr, 0, sizeof(async_addr)); 
     async_addr.sin_family = AF_INET;
@@ -164,7 +164,7 @@ void* client_listener(void* arg){
     len = sizeof(async_addr);
 
     int new_sd;
-    while ((new_sd = accept(sd, NULL, NULL)) < 0) {
+    while ((new_sd = accept(sd, (struct sockaddr*) &async_addr_to_server, &len)) < 0) {
         perror("accept");
     }
 
@@ -177,8 +177,8 @@ void* client_listener(void* arg){
 
         int id; char testo[MAX_BUF_SIZE];
 
-        if (strcmp(buf, "PING") == 0) {
-            // SI MANDA PONG --> Card attiva
+        if (strcmp(buf, "PING_USER") == 0) {
+            send(new_sd, "PONG_LAVAGNA", 13, 0);
         } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
             sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
             enqueue(async_buffer);
