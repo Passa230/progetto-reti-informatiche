@@ -138,7 +138,7 @@ int main(int argc, char **argv){
             size = recv(sd, buf, list_len, 0);
             printf("%s\n", buf);
 
-            
+
             uint32_t net_len;
             recv(sd, &net_len, sizeof(uint32_t), 0);
             user_len = ntohl(net_len);
@@ -158,6 +158,9 @@ int main(int argc, char **argv){
             printf("%s\n", lavagna_buf);
         } else if(strcmp(in_buf, "QUIT\n") == 0){
             return 0;
+        } else {
+            size = recv(sd, buf, MAX_BUF_SIZE, 0);
+            printf("%s\n", buf);
         }
 
     }
