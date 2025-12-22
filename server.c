@@ -154,6 +154,7 @@ void* card_handler(void* arg){
         printf("Preso il primo lock!\n");
         card_t* card = lavagna.cards[0];
         while (card != NULL) {
+            card_t* next = card->next_card;
             if (card->utente_assegnatario == 0 && card->utente_creatore != 0) {
                 pthread_mutex_lock(&lavagna.conn_user_sem);
                 for (int i = 0; i < lavagna.connected_users; i++) {
@@ -175,7 +176,7 @@ void* card_handler(void* arg){
                 }
                 pthread_mutex_unlock(&lavagna.conn_user_sem);
             } 
-            card = card->next_card;
+            card = next;
         }
         pthread_mutex_unlock(&lavagna.sem_cards[0]);
          
