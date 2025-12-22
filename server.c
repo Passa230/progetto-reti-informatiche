@@ -194,16 +194,21 @@ void* card_handler(void* arg){
 
             if (u->id == 0) continue;
 
+            printf("Qui ci arrivo senza bloccarmi");
+
             card_t* c = lavagna_trova_card_per_id(u->id);
 
             if (u->last_ping == 0) {
+                printf("Qui ci arrivo senza bloccarmi");
                 if (difftime(now, c->ultimo_aggiornamento) >= PING_TIMEOUT) {
+                    printf("Qui ci arrivo senza bloccarmi");
                     send(u->sock_id, "PING_USER", 10, 0);
                     u->last_ping = now;
                     printf("Inviato ping all'utente alla porta %d\n", u->port);
                 }
             } else {
                 char tmp[16];
+                printf("Qui ci arrivo senza bloccarmi");
                 if (recv(u->sock_id, tmp, sizeof(tmp), MSG_DONTWAIT) > 0) {
                     if (strcmp(tmp, "PONG_LAVAGNA") == 0) {
                         u->last_ping = 0;
