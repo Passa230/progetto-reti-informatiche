@@ -118,7 +118,7 @@ void* manage_request(void* arg){
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
     
             // CORREZIONE 1: Invia solo i byte della stringa + terminatore, non 1023 byte
-            send(user_sd, out_buf, strlen(out_buf) + 1, 0); 
+            send(user_sd, out_buf, MAX_BUF_SIZE +1, 0); 
 
             uint16_t user_buf[MAX_USER];
             memset(user_buf, 0, sizeof(user_buf));
@@ -133,7 +133,8 @@ void* manage_request(void* arg){
             int user_len_net = htonl(user_len);
             
             send(user_sd, &user_len_net, sizeof(user_len_net), 0);
-            send(user_sd, user_buf, sizeof(uint16_t) * user_len, 0);
+            if (user_len > 0)
+                send(user_sd, user_buf, sizeof(uint16_t) * user_len, 0);
         } else if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
             char lavagna_buf[MAX_SBUF_SIZE];
             lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
