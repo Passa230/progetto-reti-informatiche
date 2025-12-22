@@ -454,6 +454,7 @@ card_t* lavagna_trova_card_per_id(int id){
     card_t* list = lavagna.cards[1];
     while (list != NULL) {
         if (list->utente_assegnatario == id) {
+            pthread_mutex_unlock(&lavagna.sem_cards[1]);
             return list;
         }
         
