@@ -180,7 +180,7 @@ void* client_listener(void* arg){
         if (strcmp(buf, "PING") == 0) {
             // SI MANDA PONG --> Card attiva
         } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
-            sprintf(async_buffer, ">> NOTIFICA: Card assegnata #%d: %s\n", id, testo);
+            sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
             enqueue(async_buffer);
             memset(async_buffer, 0, sizeof(async_buffer));
         }

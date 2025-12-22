@@ -112,4 +112,9 @@ bool_t lavagna_is_user_registerd(uint16_t port);
  */
 void lavagna_user_list(char* buf, size_t max_len);
 
+/**
+ * 
+ */
+card_t* lavagna_trova_card_per_id(int id);
+
 #endif /* LAVAGNA_H */

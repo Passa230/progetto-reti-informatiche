@@ -11,6 +11,9 @@
 #define MAX_NOTIFICATIONS   70
 #define MAX_NOT_CMD_SIZE    50
 #define MAX_NOT_BUF_SIZE    MAX_BUF_SIZE + MAX_NOT_CMD_SIZE
+#define MAX_PONG_TIME       30
+#define PING_TIMEOUT        90
+
 // Gestione dei booleani
 #define TRUE                0   
 #define FALSE               1

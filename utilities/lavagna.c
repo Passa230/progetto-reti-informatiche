@@ -308,6 +308,7 @@ bool_t lavagna_hello(uint16_t port){
     lavagna.utenti_registrati[lavagna.connected_users].port = port;
     lavagna.utenti_registrati[lavagna.connected_users].sock_id = sd;
     lavagna.utenti_registrati[lavagna.connected_users].id = 0;
+    lavagna.utenti_registrati[lavagna.connected_users].last_ping = 0;
 
     lavagna.connected_users++;
 
@@ -447,3 +448,16 @@ void lavagna_user_list(char* buf, size_t max_len){
     pthread_mutex_unlock(&lavagna.conn_user_sem);
 }
 
+
+card_t* lavagna_trova_card_per_id(int id){
+    pthread_mutex_lock(&lavagna.sem_cards[1]);
+    card_t* list = lavagna.cards[1];
+    while (list != NULL) {
+        if (list->utente_assegnatario == id) {
+            return list;
+        }
+        
+    }
+    pthread_mutex_unlock(&lavagna.sem_cards[1]);
+    return NULL;
+}

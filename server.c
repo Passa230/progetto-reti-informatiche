@@ -184,6 +184,44 @@ void* card_handler(void* arg){
         // NOTIFICA PING
         printf("Sto per andare a dormire\n");
         sleep(5);
+
+        // AGGIORNAMENTO DEI TIMER RELATIVI ALLA LAVAGNA
+        time_t now = time(NULL);
+        pthread_mutex_lock(&lavagna.conn_user_sem);
+        for (int i = 0; i < lavagna.connected_users; i++) {
+            user_t* u = &lavagna.utenti_registrati[i];
+
+            if (u->id == 0) continue;
+
+            card_t* c = lavagna_trova_card_per_id(u->id);
+
+            if (u->last_ping == 0) {
+                if (difftime(now, c->ultimo_aggiornamento) >= PING_TIMEOUT) {
+                    send(u->sock_id, "PING", 10, 0);
+                    u->last_ping = now;
+                    printf("Inviato ping all'utente alla porta %d\n", u->port);
+                }
+            } else {
+                char tmp[16];
+                if (recv(u->sock_id, tmp, sizeof(tmp), MSG_DONTWAIT) > 0) {
+                    if (strcmp(tmp, "PONG") == 0) {
+                        u->last_ping = 0;
+                        c->ultimo_aggiornamento = now;
+                    }
+                } else if (difftime(now, u->last_ping) > 30){
+                    printf("TIMEOUT! L'utente %d non ha risposto. Sposto card in To Do\n", u->port);
+                    c->utente_assegnatario = 0;
+                    lavagna_move_card_to_head(c, 0);
+                    u->id = 0;
+                    u->last_ping = 0;
+                }
+                
+            }
+            
+            
+        }
+        
     }
+    
     
 }

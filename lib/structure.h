@@ -48,6 +48,7 @@ struct user {
     uint16_t port;
     int id;
     int sock_id;
+    time_t last_ping;
 };
 
 typedef struct user user_t;
