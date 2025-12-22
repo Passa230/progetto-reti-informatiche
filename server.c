@@ -196,7 +196,7 @@ void* card_handler(void* arg){
 
             printf("Qui ci arrivo senza bloccarmi");
 
-            card_t* c = lavagna_trova_card_per_id(u->id);
+            card_t* c = lavagna_trova_card_per_id(u->port);
 
             if (c == NULL) {
                 printf("La card è NULL\n");
