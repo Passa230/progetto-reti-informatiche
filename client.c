@@ -117,7 +117,7 @@ int main(int argc, char **argv){
             }
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
             printf("%s\n", buf);
-        } else if (strcmp(in_buf, "REVIEW_CARD") == 0) {
+        } else if (strcmp(in_buf, "REVIEW_CARD\n") == 0) {
             // Da gestire la revisione, cioè far comunicare all'utente 
             /**
              * For che per ogni utente connesso invia UDP un messaggio
@@ -129,7 +129,7 @@ int main(int argc, char **argv){
              * I
              */
         
-        } else if (strcmp(in_buf, "SHOW_USR_LIST") == 0){
+        } else if (strcmp(in_buf, "SHOW_USR_LIST\n") == 0){
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
             printf("%s\n", buf);
             recv(sd, &user_len, sizeof(user_len), 0);
