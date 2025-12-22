@@ -116,7 +116,7 @@ void* manage_request(void* arg){
             send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
-            send(user_sd, out_buf, strlen(out_buf) + 1, 0);
+            send(user_sd, out_buf, MAX_BUF_SIZE + 1, 0);
 
             uint16_t user_buf[MAX_USER];
             memset(user_buf, 0, sizeof(user_buf));
