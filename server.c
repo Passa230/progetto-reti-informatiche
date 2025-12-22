@@ -124,7 +124,7 @@ void* manage_request(void* arg){
 
             uint16_t user_buf[MAX_USER];
             memset(user_buf, 0, sizeof(user_buf));
-            int user_len = lavagna_user_list_to_vec(user_buf);
+            user_len = lavagna_user_list_to_vec(user_buf);
             
             // CORREZIONE 2: Converti ogni porta in Network Order (htons)
             for(int i = 0; i < user_len; i++) {
