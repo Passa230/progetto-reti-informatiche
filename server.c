@@ -220,6 +220,8 @@ void* card_handler(void* arg){
             
             
         }
+        pthread_mutex_unlock(&lavagna.conn_user_sem);
+
         
     }
     
