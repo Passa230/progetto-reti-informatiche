@@ -113,8 +113,22 @@ bool_t lavagna_is_user_registerd(uint16_t port);
 void lavagna_user_list(char* buf, size_t max_len);
 
 /**
+ * @brief funzione che permette di trovare una carta passando come argomento 
+ * l'ID dell'utente a cui è assegnata
  * 
+ * @param id identificatore dell'utente a cui è assegnata la carte
+ * @return un puntatore alla card o NULL se non vi è alcuna corrispondenza
  */
 card_t* lavagna_trova_card_per_id(int id);
+
+
+/**
+ * @brief funzione che permette di popolare un vettore di uint16_t con le porte
+ * degli utenti attualmente registrati nel sistema.
+ * 
+ * @param buf il buffer all'interno del quale inserire la lista delle porte utente.
+ */
+
+int lavagna_user_list_to_vec(int* buf);
 
 #endif /* LAVAGNA_H */

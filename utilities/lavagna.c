@@ -466,3 +466,16 @@ card_t* lavagna_trova_card_per_id(int id){
     pthread_mutex_unlock(&lavagna.sem_cards[1]);
     return NULL;
 }
+
+
+int lavagna_user_list_to_vec(int* buf){
+    pthread_mutex_lock(&lavagna.conn_user_sem);
+
+    for (int i = 0; i < lavagna.connected_users; i++) {
+        buf[i] = lavagna.utenti_registrati[i].port;
+    }
+    
+    int len = lavagna.connected_users;
+    pthread_mutex_unlock(&lavagna.conn_user_sem);
+    return len;
+}

@@ -36,7 +36,7 @@ int main(int argc, char **argv){
     }
     // Blocco della possibilità di fare CTRL + C all'utente
     // signal(SIGINT, SIG_IGN);
-    int ret, sd;
+    int ret, sd, user_len, user_buf[MAX_USER];
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE], lavagna_buf[MAX_SBUF_SIZE];
     char in_buf[MAX_BUF_SIZE];
@@ -114,28 +114,42 @@ int main(int argc, char **argv){
                 printf("Connessione chiusa dal server\n");
                 break;
             }
-        
-        }       
-
-        if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
-            size = recv(sd, lavagna_buf, MAX_SBUF_SIZE, 0);
-            printf("%s\n", lavagna_buf);
-        } else {
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
             printf("%s\n", buf);
-        }
+        } else if (strcmp(in_buf, "REVIEW_CARD")) {
+            // Da gestire la revisione, cioè far comunicare all'utente 
+            /**
+             * For che per ogni utente connesso invia UDP un messaggio
+             * di richiesta approvazione.
+             * 
+             * Quando riceve una risposta del tipo "REVIEW_ACCEPT" allora 
+             * manda al server un segnale del tipo "CARD_DONE"
+             * 
+             * I
+             */
         
-
-        if(strcmp(in_buf, "QUIT\n") == 0){
+        } else if (strcmp(in_buf, "SHOW_USR_LIST") == 0){
+            size = recv(sd, buf, MAX_BUF_SIZE, 0);
+            printf("%s\n", buf);
+            recv(sd, &user_len, sizeof(user_len), 0);
+            int num_utenti = ntohl(user_len);
+            recv(sd, user_buf, sizeof(uint16_t) * num_utenti, 0);
+            printf("> [DATI] Utenti disponibile: %d", num_utenti);
+        } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
+            size = recv(sd, lavagna_buf, MAX_SBUF_SIZE, 0);
+            printf("%s\n", lavagna_buf);
+        } else if(strcmp(in_buf, "QUIT\n") == 0){
             return 0;
         }
-
 
     }
     
 }
 
 
+/**
+ * @todo aggiungere un card ACK per accettare l'assegnamento della card
+ */
 void* client_listener(void* arg){
     int port = atoi((char *)arg), ret, len;
     char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
@@ -180,9 +194,12 @@ void* client_listener(void* arg){
         if (strcmp(buf, "PING_USER") == 0) {
             send(new_sd, "PONG_LAVAGNA", 13, 0);
         } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
+            // Crea una send di ACK_CARD
             sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
             enqueue(async_buffer);
             memset(async_buffer, 0, sizeof(async_buffer));
+        } else if (strcmp(buf, "REWEIUE")){
+
         }
 
     }

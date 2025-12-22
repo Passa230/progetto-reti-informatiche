@@ -117,6 +117,13 @@ void* manage_request(void* arg){
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
             send(user_sd, out_buf, MAX_BUF_SIZE-1, 0);
+
+            uint16_t user_buf[MAX_USER];
+            int user_len = lavagna_user_list_to_vec(user_buf);
+            int user_len_net = htonl(user_len);
+            
+            send(user_sd, &user_len_net, sizeof(user_len_net), 0);
+            send(user_sd, user_buf, sizeof(uint16_t)*user_len, 0);
         } else if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
             char lavagna_buf[MAX_SBUF_SIZE];
             lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
