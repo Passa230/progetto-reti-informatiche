@@ -362,8 +362,12 @@ bool_t lavagna_quit(uint16_t port){
         if (list->utente_assegnatario == port) {
             card_t* card_to_move = lavagna_card_remove(list->id, 1);
 
+            pthread_mutex_unlock(&lavagna.sem_cards[1]);
+
             card_to_move->utente_assegnatario = 0;
             lavagna_move_card_to_head(card_to_move, 0);
+
+            pthread_mutex_lock(&lavagna.sem_cards[1]);
 
             list = lavagna.cards[1];
         } else {
