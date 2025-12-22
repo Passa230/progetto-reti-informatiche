@@ -121,7 +121,9 @@ void* manage_request(void* arg){
             uint16_t user_buf[MAX_USER];
             int user_len = lavagna_user_list_to_vec(user_buf);
             int user_len_net = htonl(user_len);
-            
+            for(int i = 0; i < user_len; i++) {
+                user_buf[i] = htons(user_buf[i]); // Fondamentale per le porte!
+            }
             send(user_sd, &user_len_net, sizeof(user_len_net), 0);
             send(user_sd, user_buf, sizeof(uint16_t)*user_len, 0);
         } else if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {

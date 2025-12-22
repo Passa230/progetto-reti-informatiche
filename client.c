@@ -36,7 +36,8 @@ int main(int argc, char **argv){
     }
     // Blocco della possibilità di fare CTRL + C all'utente
     // signal(SIGINT, SIG_IGN);
-    int ret, sd, user_len, user_buf[MAX_USER];
+    uint16_t user_buf[MAX_USER];
+    int ret, sd, user_len;
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE], lavagna_buf[MAX_SBUF_SIZE];
     char in_buf[MAX_BUF_SIZE];
@@ -116,7 +117,7 @@ int main(int argc, char **argv){
             }
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
             printf("%s\n", buf);
-        } else if (strcmp(in_buf, "REVIEW_CARD")) {
+        } else if (strcmp(in_buf, "REVIEW_CARD") == 0) {
             // Da gestire la revisione, cioè far comunicare all'utente 
             /**
              * For che per ogni utente connesso invia UDP un messaggio
@@ -135,6 +136,11 @@ int main(int argc, char **argv){
             int num_utenti = ntohl(user_len);
             recv(sd, user_buf, sizeof(uint16_t) * num_utenti, 0);
             printf("> [DATI] Utenti disponibile: %d", num_utenti);
+            for (int i = 0; i < num_utenti; i++) {
+                uint16_t porta_corretta = ntohs(user_buf[i]); // <--- CONVERSIONE QUI
+                printf("  - Utente sulla porta: %d\n", porta_corretta);
+                user_buf[i] = porta_corretta;
+            }
         } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
             size = recv(sd, lavagna_buf, MAX_SBUF_SIZE, 0);
             printf("%s\n", lavagna_buf);
