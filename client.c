@@ -123,10 +123,10 @@ int main(int argc, char **argv){
             printf("%s\n", buf);
         } else if (strcmp(in_buf, "REVIEW_CARD\n") == 0) {
             if (user_len <= 0){
-                printf("[ERRORE] Richiedi gli utenti prima di revisionare la card");
+                printf("[ERRORE] Richiedi gli utenti prima di revisionare la card\n");
                 continue;
             } else if (user_len == 1){
-                printf("[ERRORE] Non ci sono abbastanza utenti, attendi che qualcuno si registri e riprova");
+                printf("[ERRORE] Non ci sono abbastanza utenti, attendi che qualcuno si registri e riprova\n");
                 continue;
             }
 
@@ -152,7 +152,7 @@ int main(int argc, char **argv){
                               (struct sockaddr*)&dest_addr, sizeof(dest_addr));
                 
                 if (sent < 0) {
-                    perror("Errore invio UDP");
+                    perror("Errore invio UDP\n");
                 } else {
                     sent_count++;
                 }
@@ -176,14 +176,14 @@ int main(int argc, char **argv){
             uint32_t net_len;
             recv(sd, &net_len, sizeof(uint32_t), 0);
             user_len = ntohl(net_len);
-            printf("> [DATI] Utenti disponibile: %d", user_len);
+            printf("> [DATI] Utenti disponibile: %d\n", user_len);
             
             if (user_len > 0) {
                 recv(sd, user_buf, sizeof(uint16_t) * user_len, 0);
                 
                 for (int i = 0; i < user_len; i++) {
                     uint16_t porta_corretta = ntohs(user_buf[i]); // <--- CONVERSIONE QUI
-                    printf("  - Utente sulla porta: %d\n", porta_corretta);
+                    //printf("  - Utente sulla porta: %d\n", porta_corretta);
                     user_buf[i] = porta_corretta;
                 }
             }
