@@ -11,10 +11,14 @@
 #include <signal.h>
 #include <structure.h>
 
-
+// @todo Valutare se rimuovere o meno
 pthread_mutex_t queue_mutex;
 notifica_t n_queue[MAX_NOTIFICATIONS];
 int head = 0, tail = 0, count = 0;
+
+bool_t is_review_complete = FALSE;
+
+
 
 void enqueue(char* nuovo_msg) {
     pthread_mutex_lock(&queue_mutex);
@@ -94,20 +98,12 @@ int main(int argc, char **argv){
         pthread_mutex_unlock(&queue_mutex);
         
         printf(">>> ");
-        fgets(in_buf, sizeof(in_buf), stdin);
-
-        if (strcmp(in_buf, "REVIEW_CARD\n") != 0){
-            size = send(sd, in_buf, strlen(in_buf) + 1, 0);
-
-            if (size <= 0) {
-                printf("Connessione chiusa dal server\n");
-                break;
-            }
-        }
-        
+        fgets(in_buf, sizeof(in_buf), stdin);     
 
 
         if (strcmp(in_buf, "CARD_CREATE\n") == 0) {
+            size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+            if (size <= 0) break; 
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
             printf("%s\n", buf);
             printf("> ");
@@ -164,6 +160,8 @@ int main(int argc, char **argv){
             user_len = 0;
             
         } else if (strcmp(in_buf, "SHOW_USR_LIST\n") == 0){
+            size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+            if (size <= 0) break; 
             int list_len = 0;
             size = recv(sd, &list_len, sizeof(list_len), 0);
             list_len = ntohl(list_len);
@@ -188,13 +186,24 @@ int main(int argc, char **argv){
                 }
             }
         } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
+            size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+            if (size <= 0) break; 
             size = recv(sd, lavagna_buf, MAX_SBUF_SIZE, 0);
             printf("%s\n", lavagna_buf);
         } else if(strcmp(in_buf, "QUIT\n") == 0){
+            size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+            if (size <= 0) break; 
             return 0;
+        } else if(strcmp(in_buf, "CARD_DONE\n") == 0){
+            if(is_review_complete == FALSE){
+                printf("[ERRORE] Attendi che almeno un altro client revisioni il lavoro");
+                continue;
+            }
+            size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+            if (size <= 0) break; 
+
         } else {
-            size = recv(sd, buf, MAX_BUF_SIZE, 0);
-            printf("%s\n", buf);
+            printf("[ERRORE] Comando non valido!");
         }
 
     }
