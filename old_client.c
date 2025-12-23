@@ -3,7 +3,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/select.h>
-#include <errno.h>
 #include <generic.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -96,15 +95,13 @@ int main(int argc, char **argv){
         printf(">>> ");
         fgets(in_buf, sizeof(in_buf), stdin);
 
-        if (strcmp(in_buf, "REVIEW_CARD\n") != 0){
-            size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+        size = send(sd, in_buf, strlen(in_buf) + 1, 0);
+        // si attende la risposta dal server 
 
-            if (size <= 0) {
-                printf("Connessione chiusa dal server\n");
-                break;
-            }
+        if (size <= 0) {
+            printf("Connessione chiusa dal server\n");
+            break;
         }
-        
 
 
         if (strcmp(in_buf, "CARD_CREATE\n") == 0) {
@@ -130,38 +127,9 @@ int main(int argc, char **argv){
                 continue;
             }
 
-            int udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
-            if (udp_sock < 0) {
-                perror("Errore creazione socket UDP per invio");
-                continue;
-            }
-
-            snprintf(in_buf, sizeof(in_buf), "REVIEW: L'utente sulla porta %s richiede revisione!", argv[1]);
-            int sent_count = 0;
-
             for (int i = 0; i < user_len; i++) {
-                if (user_buf[i] == atoi(argv[1])) continue;
-                struct sockaddr_in dest_addr;
-                memset(&dest_addr, 0, sizeof(dest_addr));
-                dest_addr.sin_family = AF_INET;
-                dest_addr.sin_port = htons(user_buf[i]); // Porta di destinazione
-                inet_pton(AF_INET, "127.0.0.1", &dest_addr.sin_addr);
-
-                
-                ssize_t sent = sendto(udp_sock, in_buf, strlen(in_buf), 0, 
-                              (struct sockaddr*)&dest_addr, sizeof(dest_addr));
-                
-                if (sent < 0) {
-                    perror("Errore invio UDP");
-                } else {
-                    sent_count++;
-                }
-                              
+                sendto();
             }
-
-            close(udp_sock);
-            memset(user_buf, 0, sizeof(user_buf));
-            user_len = 0;
             
         } else if (strcmp(in_buf, "SHOW_USR_LIST\n") == 0){
             int list_len = 0;
@@ -209,109 +177,58 @@ int main(int argc, char **argv){
 void* client_listener(void* arg){
     int port = atoi((char *)arg), ret, len;
     char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
-    int tcp_sd, udp_sd, max_sd, server_sd;
+    int tcp_sd, udp_sd, max_sd, server_sd = -1;
     fd_set read_fds;
+
     struct sockaddr_in async_addr, async_addr_to_server;
-    
-    // -----------------------------------------------------------
-    // PREPARAZIONE SOCKET TCP (Per accogliere il Server)
-    // -----------------------------------------------------------
-    server_sd = socket(AF_INET, SOCK_STREAM, 0);
+    tcp_sd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&async_addr, 0, sizeof(async_addr)); 
     async_addr.sin_family = AF_INET;
     async_addr.sin_port = htons(port);
     inet_pton(AF_INET, "127.0.0.1", &async_addr.sin_addr);
 
 
-    ret = bind(server_sd, (struct sockaddr*) &async_addr, sizeof(async_addr));
+    ret = bind(tcp_sd, (struct sockaddr*) &async_addr, sizeof(async_addr));
     if (ret < 0) {
         perror("bind failed");
-        close(server_sd);
+        close(tcp_sd);
         pthread_exit(NULL);
     }
-    ret = listen(server_sd, 20);
+    ret = listen(tcp_sd, 20);
     if (ret < 0) {
         perror("listen failed");
-        close(server_sd);
+        close(tcp_sd);
         pthread_exit(NULL);
     }
     len = sizeof(async_addr);
 
-    while ((tcp_sd = accept(server_sd, (struct sockaddr*) &async_addr_to_server, &len)) < 0) {
+    int new_sd;
+    while ((new_sd = accept(tcp_sd, (struct sockaddr*) &async_addr_to_server, &len)) < 0) {
         perror("accept");
     }
 
-
-    close(server_sd);
-
-    // -----------------------------------------------------------
-    // PREPARAZIONE SOCKET UDP (Per REVIEW peer-to-peer)
-    // -----------------------------------------------------------
+    // creazione del socket UDP
     udp_sd = socket(AF_INET, SOCK_DGRAM, 0);
-    
-    if (bind(udp_sd, (struct sockaddr*) &async_addr, sizeof(async_addr)) < 0){
-        close(udp_sd);
-        close(tcp_sd);
-        pthread_exit(NULL);
-    }
-    
+    bind(udp_sd, (struct sockaddr*) &async_addr, sizeof(async_addr));
+
     // Si deve mettere in ascolto sulla porta client
     while (1) {
-        // pulizia del set di descrittore
-        FD_ZERO(&read_fds);
         
-        // si aggiunge il socket UDP
-        FD_SET(udp_sd, &read_fds);
-        FD_SET(tcp_sd, &read_fds);
-        max_sd = (udp_sd > tcp_sd) ? udp_sd : tcp_sd;;
+        ssize_t size = recv(new_sd, buf, MAX_BUF_SIZE - 1, 0);
+        if (size <= 0) break;
+        buf[size] = '\0';
 
-        int activity = select(max_sd + 1, &read_fds, NULL, NULL, NULL);
-        if ((activity < 0) && (errno != EINTR)) {
-            perror("Select error");
-            break;
-        }
+        int id; char testo[MAX_BUF_SIZE];
 
-        if (FD_ISSET(udp_sd, &read_fds)) {
-            ssize_t n = recvfrom(udp_sd, buf, sizeof(buf) - 1, 0, NULL, NULL);
-            buf[n] = '\0';
-            if (strncmp(buf, "REVIEW:", 7) == 0) {
-                printf("\r\033[K"); // Cancella riga corrente
-                printf("[REVIEW RICHIESTA] %s\n", buf);
-                printf(">>> ");
-                fflush(stdout);
-            }
+        if (strcmp(buf, "PING_USER") == 0) {
+            send(new_sd, "PONG_LAVAGNA", 13, 0);
+        } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
+            // Crea una send di ACK_CARD
+            sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
+            enqueue(async_buffer);
             memset(async_buffer, 0, sizeof(async_buffer));
-        }
-        
-        if (FD_ISSET(tcp_sd, &read_fds)) {
-            ssize_t n = recv(tcp_sd, buf, MAX_BUF_SIZE - 1, 0);
-    
-            if (n <= 0) {
-                // Il server ha chiuso la connessione (o crash)
-                printf("[ERRORE] Connessione notifiche persa col server.\n");
-                close(tcp_sd);
-                close(udp_sd);
-                // Usciamo dal thread o gestiamo la chiusura del client
-                pthread_exit(NULL); 
-            }
-
-            buf[n] = '\0';
-
-            int id; char testo[MAX_BUF_SIZE];
-
-            if (strcmp(buf, "PING_USER") == 0) {
-                send(tcp_sd, "PONG_LAVAGNA", 13, 0);
-            } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
-                // Crea una send di ACK_CARD
-                sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
-                //enqueue(async_buffer);
-                printf("\r\033[K");
-                printf("[NOTIFICA ASINCRONA] %s\n", buf);
-                printf(">>> ");
-                fflush(stdout);
-
-                memset(async_buffer, 0, sizeof(async_buffer));
-            }
+        } else if (strcmp(buf, "REVIEW_CARD")){
+            sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
         }
 
     }
