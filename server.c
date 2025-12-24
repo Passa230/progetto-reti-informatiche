@@ -151,7 +151,6 @@ void* manage_request(void* arg){
             close(user_sd);
             pthread_exit(0);
         } else if(strcmp(buf, "CARD_DONE\n") == 0){
-            char lavagna_buf[MAX_SBUF_SIZE];
             pthread_mutex_lock(&lavagna.sem_cards[1]);
             card_t* c = lavagna_trova_card_per_id(port);
             if (c == NULL) {
@@ -164,8 +163,8 @@ void* manage_request(void* arg){
 
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
-            lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
-            printf("%s", lavagna_buf);
+            //lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
+            //printf("%s", lavagna_buf);
         } else {
             //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
         }
