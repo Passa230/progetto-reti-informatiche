@@ -152,18 +152,20 @@ void* manage_request(void* arg){
             pthread_exit(0);
         } else if(strcmp(buf, "CARD_DONE\n") == 0){
             char lavagna_buf[MAX_SBUF_SIZE];
+            pthread_mutex_lock(&lavagna.sem_cards[1]);
             card_t* c = lavagna_trova_card_per_id(port);
-            if (c != NULL)
-            {
-                pthread_mutex_lock(&lavagna.sem_cards[1]);
-                c = lavagna_card_remove(c->id, 1);
+            if (c == NULL) {
                 pthread_mutex_unlock(&lavagna.sem_cards[1]);
-                lavagna_move_card_to_head(c, 2);
-                lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
-                printf("%s", lavagna_buf);
-            } else {
-                printf("La card è null\n");
+                continue;
             }
+
+            c = lavagna_card_remove(c->id, 1);
+            lavagna_move_card_to_head(c, 2);
+
+            pthread_mutex_unlock(&lavagna.sem_cards[1]);
+
+            lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
+            printf("%s", lavagna_buf);
         } else {
             //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
         }
@@ -251,7 +253,10 @@ void* card_handler(void* arg){
 
             printf("Qui ci arrivo senza bloccarmi");
 
+            pthread_mutex_lock(&lavagna.sem_cards[1]);
             card_t* c = lavagna_trova_card_per_id(u->port);
+            
+            
 
             // se l'utente non è mai stato pingato
             if (u->last_ping == 0) {
@@ -275,9 +280,7 @@ void* card_handler(void* arg){
                     c->utente_assegnatario = 0;
                     pthread_mutex_unlock(&lavagna.conn_user_sem);
 
-                    pthread_mutex_lock(&lavagna.sem_cards[1]);
-                    lavagna_card_remove(c->id, 1);
-                    pthread_mutex_unlock(&lavagna.sem_cards[1]);
+                    c = lavagna_card_remove(c->id, 1);
 
                     lavagna_move_card_to_head(c, 0);
 
@@ -290,6 +293,7 @@ void* card_handler(void* arg){
                     u->last_ping = 0;
                 }
             }     
+            pthread_mutex_unlock(&lavagna.sem_cards[1]);
         }
         pthread_mutex_unlock(&lavagna.conn_user_sem);
     }

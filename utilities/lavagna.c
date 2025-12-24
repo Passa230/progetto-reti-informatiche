@@ -455,16 +455,13 @@ int lavagna_user_list(char* buf, size_t max_len){
 
 
 card_t* lavagna_trova_card_per_id(int id){
-    pthread_mutex_lock(&lavagna.sem_cards[1]);
     card_t* list = lavagna.cards[1];
     while (list != NULL) {
         if (list->utente_assegnatario == id) {
-            pthread_mutex_unlock(&lavagna.sem_cards[1]);
             return list;
         }
         list = list->next_card;
     }
-    pthread_mutex_unlock(&lavagna.sem_cards[1]);
     return NULL;
 }
 
