@@ -159,6 +159,12 @@ void* manage_request(void* arg){
             }
 
             c = lavagna_card_remove(c->id, 1);
+            if (c == NULL) {
+                pthread_mutex_unlock(&lavagna.sem_cards[1]);
+                printf("[LOG] Per qualche motivo la card è null");
+                continue;
+            }
+            
             printf("[LOG] Nessun Segmentation Fault");
             lavagna_move_card_to_head(c, 2);
             printf("[LOG] Nessun Segmentation Fault");
