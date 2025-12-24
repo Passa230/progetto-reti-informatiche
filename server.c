@@ -87,7 +87,7 @@ void* manage_request(void* arg){
     }
     lavagna_hello(port);
     send(user_sd, "ok", strlen("ok") + 1, 0);
-    printf("registrato utente alla porta %d\n", port);
+    printf("registrato utente alla porta %hd\n", port);
 
     
     

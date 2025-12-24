@@ -453,7 +453,7 @@ int lavagna_user_list(char* buf, size_t max_len){
     return used;
 }
 
-
+// TODO --> Sostituire int ID con uint16_t id
 card_t* lavagna_trova_card_per_id(int id){
     card_t* list = lavagna.cards[1];
     while (list != NULL) {
