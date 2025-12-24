@@ -187,7 +187,7 @@ int main(int argc, char **argv){
                 }
             }
 
-            memset(user_buf, 0, sizeof(user_buf));
+            //memset(user_buf, 0, sizeof(user_buf));
             //review_needed = user_len-1;
             //memset(voters, 0, sizeof(voters));
         } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
