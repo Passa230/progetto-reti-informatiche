@@ -153,12 +153,17 @@ void* manage_request(void* arg){
         } else if(strcmp(buf, "CARD_DONE\n") == 0){
             char lavagna_buf[MAX_SBUF_SIZE];
             card_t* c = lavagna_trova_card_per_id(port);
-            pthread_mutex_lock(&lavagna.sem_cards[1]);
-            lavagna_card_remove(c->id, 1);
-            pthread_mutex_unlock(&lavagna.sem_cards[1]);
-            lavagna_move_card_to_head(c, 2);
-            lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
-            printf("%s", lavagna_buf);
+            if (c == NULL)
+            {
+                pthread_mutex_lock(&lavagna.sem_cards[1]);
+                lavagna_card_remove(c->id, 1);
+                pthread_mutex_unlock(&lavagna.sem_cards[1]);
+                lavagna_move_card_to_head(c, 2);
+                lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
+                printf("%s", lavagna_buf);
+            } else {
+                printf("La card è null\n");
+            }
         } else {
             //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
         }
