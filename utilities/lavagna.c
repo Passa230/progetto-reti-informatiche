@@ -39,7 +39,7 @@ card_t * card_create(const char testo_attivita[], uint16_t utente_creatore) {
     if (nuova_card == NULL) {
         return NULL; // Gestione errore allocazione memoria
     }
-    nuova_card->id = get_new_id();
+    nuova_card->id = get_new_id(); // Da decidere: utilizzare variabile globale o meno ?
     nuova_card->colonna = TO_DO;
     strncpy(nuova_card->testo_attivita, testo_attivita, MAX_BUF_SIZE);
     nuova_card->utente_creatore = utente_creatore;
