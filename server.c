@@ -183,9 +183,9 @@ void* card_handler(void* arg){
     memset(msg, 0, sizeof(msg));
     while (1) {
         // ASSEGNAMENTO DELLE CARD
-        printf("entro nel ciclo!\n");
+        //printf("entro nel ciclo!\n");
         pthread_mutex_lock(&lavagna.sem_cards[0]);
-        printf("Preso il primo lock!\n");
+        //printf("Preso il primo lock!\n");
         card_t* card = lavagna.cards[0];
         while (card != NULL) {
             card_t* next = card->next_card;
@@ -193,14 +193,9 @@ void* card_handler(void* arg){
                 pthread_mutex_lock(&lavagna.conn_user_sem);
                 for (int i = 0; i < lavagna.connected_users; i++) {
                     if (lavagna.utenti_registrati[i].id == 0) {
-                        card_t* to_move = lavagna_card_remove(card->id, 0);
-                        to_move->utente_assegnatario = lavagna.utenti_registrati[i].port;
-                        lavagna.utenti_registrati[i].id = to_move->id;
 
-                        // Da cambiare la logica. Dobbiamo successivamente all'aver mandato il messaggio
-                        // utilizzare l'I/O multiplexing per verificare che venga inviato ACK_CARD
                         snprintf(msg, sizeof(msg), "ASYNC: HANDLE_CARD %d %s\n", 
-                                        to_move->id, to_move->testo_attivita);
+                                        card->id, card->testo_attivita);
                         send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
 
                         fd_set read_fds;
@@ -213,16 +208,16 @@ void* card_handler(void* arg){
                                       
                         printf("[SERVER] Inviata proposta a %d. Attendo ACK...\n", lavagna.utenti_registrati[i].port);
 
-                        int activity = select(lavagna.utenti_registrati[i].port + 1, &read_fds, NULL, NULL, &timeout);
+                        int activity = select(lavagna.utenti_registrati[i].sock_id + 1, &read_fds, NULL, NULL, &timeout);
                         if (activity > 0) {
                             int n = recv(lavagna.utenti_registrati[i].sock_id, buf, sizeof(buf)-1, 0);
-
+                            buf[n] = '\0';
                             if (strncmp(buf, "ACK_CARD", 8) == 0) {
                                 printf("[SERVER] ACK ricevuto! Sposto card in DOING.\n");
-                                pthread_mutex_unlock(&lavagna.sem_cards[0]);
-                                lavagna_move_card_to_head(to_move, 1);
-                                lavagna.utenti_registrati[i].id = to_move->id;
-                                pthread_mutex_lock(&lavagna.sem_cards[0]);
+                                lavagna_card_remove(card->id, 0);
+                                card->utente_assegnatario = lavagna.utenti_registrati[i].port;
+                                lavagna.utenti_registrati[i].id = card->id;
+                                lavagna_move_card_to_head(card, 1);
                                 break;
                             }
                             
