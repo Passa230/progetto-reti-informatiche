@@ -160,7 +160,7 @@ void* manage_request(void* arg){
 
             c = lavagna_card_remove(c->id, 1);
             lavagna_move_card_to_head(c, 2);
-
+            printf("[LOG] Nessun Segmentation Fault");
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
             //lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
