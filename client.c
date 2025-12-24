@@ -14,7 +14,18 @@
 
 
 bool_t is_review_complete = FALSE;
-uint32_t review_accept = 0;
+uint32_t review_received = 0, review_needed = 0;
+uint16_t voters[MAX_USER];
+time_t review_start_time = 0;
+pthread_mutex_t review_mutex;
+
+
+bool_t has_already_voted(uint16_t port){
+    for (int i = 0; i < review_received; i++) {
+        if (voters[i] == port) return TRUE;
+    }
+    return FALSE;
+}
 
 
 
@@ -31,7 +42,8 @@ int main(int argc, char **argv){
     // Blocco della possibilità di fare CTRL + C all'utente
     // signal(SIGINT, SIG_IGN);
     uint16_t user_buf[MAX_USER];
-    int ret, sd, user_len, review_port;
+    int ret, sd, user_len;
+    uint16_t review_port, send_port;
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE], lavagna_buf[MAX_SBUF_SIZE];
     char in_buf[MAX_BUF_SIZE];
@@ -42,6 +54,7 @@ int main(int argc, char **argv){
         return 0;
     }
 
+    pthread_mutex_init(&review_mutex, NULL);
     pthread_t t_listener;
     pthread_create(&t_listener, NULL, client_listener, argv[1]);
 
@@ -111,6 +124,14 @@ int main(int argc, char **argv){
                 continue;
             }
 
+            pthread_mutex_lock(&review_mutex); // Lock se usi mutex (consigliato)
+            review_received = 0;
+            review_needed = user_len - 1;
+            is_review_complete = FALSE;
+            review_start_time = time(NULL); 
+            memset(voters, 0, sizeof(voters));
+            pthread_mutex_unlock(&review_mutex);
+
             snprintf(in_buf, sizeof(in_buf), "REVIEW: L'utente sulla porta %s richiede revisione!", argv[1]);
             int sent_count = 0;
 
@@ -136,6 +157,7 @@ int main(int argc, char **argv){
 
             close(udp_sock);
             memset(user_buf, 0, sizeof(user_buf));
+            review_needed = user_len-1;
             user_len = 0;
             
         } else if (strcmp(in_buf, "SHOW_USR_LIST\n") == 0){
@@ -164,6 +186,10 @@ int main(int argc, char **argv){
                     user_buf[i] = porta_corretta;
                 }
             }
+
+            memset(user_buf, 0, sizeof(user_buf));
+            //review_needed = user_len-1;
+            //memset(voters, 0, sizeof(voters));
         } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
@@ -194,11 +220,14 @@ int main(int argc, char **argv){
             dest_addr.sin_port = htons(review_port); 
             inet_pton(AF_INET, "127.0.0.1", &dest_addr.sin_addr);
 
-            char *msg = "OKAY_REVIEW";
+            char msg[MAX_BUF_SIZE];
+
+            // l'utente manda anche la propria porta.
+            snprintf(msg, "OKAY_REVIEW %d", atoi(argv[1]));
             ssize_t sent = sendto(udp_sock, msg, strlen(msg), 0, 
                                  (struct sockaddr*)&dest_addr, sizeof(dest_addr));
         } else {
-            printf("[ERRORE] Comando non valido!");
+            printf("[ERRORE] Comando non valido!\n");
         }
 
     }
@@ -207,13 +236,13 @@ int main(int argc, char **argv){
 
 
 /**
- * @todo aggiungere un card ACK per accettare l'assegnamento della card
  * @todo capire come gestire ste cazzo di notifiche
  */
 void* client_listener(void* arg){
     int port = atoi((char *)arg), ret, len;
     char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
     int tcp_sd, udp_sd, max_sd, server_sd;
+    uint16_t review_send_port;
     fd_set read_fds;
     struct sockaddr_in async_addr, async_addr_to_server;
     
@@ -267,13 +296,37 @@ void* client_listener(void* arg){
         // si aggiunge il socket UDP
         FD_SET(udp_sd, &read_fds);
         FD_SET(tcp_sd, &read_fds);
-        max_sd = (udp_sd > tcp_sd) ? udp_sd : tcp_sd;;
+        max_sd = (udp_sd > tcp_sd) ? udp_sd : tcp_sd;
 
-        int activity = select(max_sd + 1, &read_fds, NULL, NULL, NULL);
+        struct timeval timeout;
+        timeout.tv_sec = 1;  // Si sveglia ogni 1 secondo
+        timeout.tv_usec = 0;
+
+        int activity = select(max_sd + 1, &read_fds, NULL, NULL, &timeout);
         if ((activity < 0) && (errno != EINTR)) {
             perror("Select error");
             break;
         }
+
+        // Controllo del timer per i processi a cui è stat chiesta la review
+        pthread_mutex_lock(&review_mutex);
+        if (review_needed > 0 && is_review_complete == FALSE) {
+            time_t now = time(NULL);
+
+            if (difftime(now, review_start_time) > 90) {
+                review_needed = 0;
+                review_received = 0;
+                is_review_complete = FALSE;
+
+                printf("[TIMEOUT] Tempo scaduto per la review! Nessuna risposta completa.\n");
+                printf("[HINT] Rilancia il comando SHOW_USR_LIST per ottenere la lista degl utenti aggiornati\n e successivamente il comando REVIEW_CARD per riprovare.\n");
+            }
+            
+        }
+        pthread_mutex_unlock(&review_mutex);
+        if (activity == 0) continue;
+        
+        
 
         if (FD_ISSET(udp_sd, &read_fds)) {
             ssize_t n = recvfrom(udp_sd, buf, sizeof(buf) - 1, 0, NULL, NULL);
@@ -283,16 +336,28 @@ void* client_listener(void* arg){
                 printf("[REVIEW RICHIESTA] %s\n", buf);
                 printf(">>> ");
                 fflush(stdout);
-            } else if (is_review_complete == FALSE && strncmp(buf, "OKAY_REVIEW", 11) == 0) {
-                // devo incrementare un contatore globale
-                review_accept++;
-                if (review_accept == MAX_USER) {
-                    printf("\r\033[K");
-                    printf("[NOTIFICA] Review completata; adesso è possibile terminare la card\n");
-                    printf(">>> ");
-                    is_review_complete = TRUE;
+            } else if (is_review_complete == FALSE && sscanf(buf, "OKAY_REVIEW %d", &review_send_port) == 1) {
+                // TODO: SISTEMA I MUTEX
+                pthread_mutex_lock(&review_mutex);
+                if (has_already_voted(review_send_port) == TRUE || review_needed == 0) {
+                    pthread_mutex_unlock(&review_mutex);
+                    continue;
                 }
-                 
+                
+                
+                // devo incrementare un contatore globale
+                voters[review_received] = review_send_port;
+                review_received++;
+                
+                // si controlla se sono sufficienti
+                if (review_received == review_needed) {
+                    //printf("\r\033[K");
+                    printf("[NOTIFICA] Review completata; adesso è possibile terminare la card\n");
+                    //printf(">>> ");
+                    is_review_complete = TRUE;
+                    // review_needed = review_received = review_send_port = 0;
+                }
+                pthread_mutex_unlock(&review_mutex);
             }
             
             memset(async_buffer, 0, sizeof(async_buffer));
@@ -320,9 +385,9 @@ void* client_listener(void* arg){
                 send(tcp_sd, "ACK_CARD\n", 9, 0);
                 sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
                 //enqueue(async_buffer);
-                printf("\r\033[K");
+                //printf("\r\033[K");
                 printf("[NOTIFICA ASINCRONA] %s\n", buf);
-                printf(">>> ");
+                //printf(">>> ");
                 fflush(stdout);
 
                 memset(async_buffer, 0, sizeof(async_buffer));
