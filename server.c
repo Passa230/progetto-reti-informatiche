@@ -178,7 +178,9 @@ void* manage_request(void* arg){
             //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
         }
 
+        printf("[LOG] Sono prima della memset\n");
         memset(buf, 0, sizeof(buf));
+        printf("[LOG] Sono dopo la memset\n");
     }
     
 }
