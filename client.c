@@ -337,7 +337,7 @@ void* client_listener(void* arg){
                 printf("[REVIEW RICHIESTA] %s\n", buf);
                 printf(">>> ");
                 fflush(stdout);
-            } else if (is_review_complete == FALSE && sscanf(buf, "OKAY_REVIEW %d\n", &review_send_port) == 1) {
+            } else if (is_review_complete == FALSE && sscanf(buf, "OKAY_REVIEW %hd\n", &review_send_port) == 1) {
                 // TODO: SISTEMA I MUTEX
                 pthread_mutex_lock(&review_mutex);
                 if (has_already_voted(review_send_port) == TRUE || review_needed == 0) {
