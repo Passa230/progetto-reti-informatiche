@@ -207,7 +207,8 @@ int main(int argc, char **argv){
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
 
-        } else if (sscanf(buf, "OKAY_REVIEW %d\n", &review_port) == 1){
+        } else if (strncmp(in_buf, "OKAY_REVIEW", 11) == 0){
+            sscanf(in_buf, "OKAY_REVIEW %hd\n", &review_port);
             int udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
             if (udp_sock < 0) {
                 perror("Socket UDP error");
