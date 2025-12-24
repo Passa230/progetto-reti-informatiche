@@ -41,7 +41,8 @@ card_t * card_create(const char testo_attivita[], uint16_t utente_creatore) {
     }
     nuova_card->id = get_new_id(); // Da decidere: utilizzare variabile globale o meno ?
     nuova_card->colonna = TO_DO;
-    strncpy(nuova_card->testo_attivita, testo_attivita, MAX_BUF_SIZE);
+    strncpy(nuova_card->testo_attivita, testo_attivita, sizeof(nuova_card->testo_attivita));
+    nuova_card->testo_attivita[sizeof(nuova_card->testo_attivita) - 1] = '\0'; 
     nuova_card->utente_creatore = utente_creatore;
     nuova_card->utente_assegnatario = 0;
     nuova_card->next_card = NULL;
