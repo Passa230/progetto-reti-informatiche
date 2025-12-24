@@ -224,7 +224,7 @@ int main(int argc, char **argv){
             char msg[MAX_BUF_SIZE];
 
             // l'utente manda anche la propria porta.
-            snprintf(msg, "OKAY_REVIEW %d", atoi(argv[1]));
+            snprintf(msg, sizeof(msg), "OKAY_REVIEW %d", atoi(argv[1]));
             ssize_t sent = sendto(udp_sock, msg, strlen(msg), 0, 
                                  (struct sockaddr*)&dest_addr, sizeof(dest_addr));
         } else {
