@@ -165,15 +165,16 @@ void* manage_request(void* arg){
                 continue;
             }
             
-            printf("[LOG] Nessun Segmentation Fault");
+            printf("[LOG] Nessun Segmentation Fault\n");
             lavagna_move_card_to_head(c, 2);
-            printf("[LOG] Nessun Segmentation Fault");
+            printf("[LOG] Nessun Segmentation Fault\n");
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
             //lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
             //printf("%s", lavagna_buf);
-            printf("[LOG] Nessun Segmentation Fault");
+            printf("[LOG] Nessun Segmentation Fault\n");
         } else {
+            printf("[LOG] Il comando non esiste\n");
             //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
         }
 
