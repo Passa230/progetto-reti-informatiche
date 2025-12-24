@@ -289,14 +289,21 @@ void* card_handler(void* arg){
                     printf("TIMEOUT! L'utente %d non ha risposto. Sposto card in To Do\n", u->port);
                     c->utente_assegnatario = 0;
                     pthread_mutex_unlock(&lavagna.conn_user_sem);
-
+                    
+                    pthread_mutex_lock(&lavagna.sem_cards[1]);
+                    
                     c = lavagna_card_remove(c->id, 1);
 
-                    lavagna_move_card_to_head(c, 0);
+                    pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
-                    char visualizza[MAX_SBUF_SIZE];
-                    lavagna_stampa(visualizza, MAX_SBUF_SIZE);
-                    printf("%s\n", visualizza);
+                    if (c != NULL) {
+                        lavagna_move_card_to_head(c, 0); // Sposta in TODO
+
+                        // Stampa (usa malloc per sicurezza come detto prima)
+                        char visualizza[MAX_SBUF_SIZE];
+                        lavagna_stampa(visualizza, MAX_SBUF_SIZE);
+                        printf("%s\n", visualizza);
+                    }                    
 
                     pthread_mutex_lock(&lavagna.conn_user_sem);
                     u->id = 0;
