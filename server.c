@@ -164,11 +164,21 @@ void* manage_request(void* arg){
                 printf("[LOG] Per qualche motivo la card è null");
                 continue;
             }
-            
+            uint16_t p = c->utente_assegnatario;
+
             printf("[LOG] Nessun Segmentation Fault\n");
-            //lavagna_move_card_to_head(c, 2);
+            lavagna_move_card_to_head(c, 2);
             printf("[LOG] Nessun Segmentation Fault\n");
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
+
+            pthread_mutex_lock(&lavagna.conn_user_sem);
+            for (int i = 0; i < lavagna.connected_users; i++) {
+                if (lavagna.utenti_registrati[i].port == p) {
+                    lavagna.utenti_registrati[i].id = 0;
+                    break;
+                }
+            }
+            
 
             //lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
             //printf("%s", lavagna_buf);
