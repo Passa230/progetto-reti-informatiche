@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <utilities/lavagna.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/select.h>
 
 
@@ -14,6 +15,7 @@ void* card_handler(void* arg);
 int main(){
     // inizializzazione della lavagna
     lavagna_init();
+    signal(SIGPIPE, SIG_IGN);
 
     // creazione del socket per la gestione dell'assegnamento delle card
     pthread_t scheduler_tid;
