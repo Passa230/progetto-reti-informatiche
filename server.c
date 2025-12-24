@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <utilities/lavagna.h>
 #include <string.h>
+#include <sys/select.h>
+
 
 void* manage_request(void* arg);
 void* card_handler(void* arg);
@@ -146,8 +148,17 @@ void* manage_request(void* arg){
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\n\0", 37 , 0);
             close(user_sd);
             pthread_exit(0);
+        } else if(strcmp(buf, "CARD_DONE\n") == 0){
+            char lavagna_buf[MAX_SBUF_SIZE];
+            card_t* c = lavagna_trova_card_per_id(port);
+            pthread_mutex_lock(&lavagna.sem_cards[1]);
+            lavagna_card_remove(c->id, 1);
+            pthread_mutex_unlock(&lavagna.sem_cards[1]);
+            lavagna_move_card_to_head(c, 2);
+            lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
+            printf("%s", lavagna_buf);
         } else {
-            send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
+            //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
         }
 
         memset(buf, 0, sizeof(buf));
@@ -160,10 +171,13 @@ void* manage_request(void* arg){
  * @brief thread per la gestione delle card. Ogni k secondi il thread controlla se è possibile assegnare
  * delle nuove card a qualche utente, inoltre controlla se il tempo passato dall'ultimo assegnamento di una
  * particolare card supera un certo limite superiore e in tal caso manda un PING al client
+ * @todo Questo comando, oltre alla card, include la lista delle porte degli utenti
+ * presenti (escluso il destinatario del messaggio), e il numero degli utenti presenti.
+ 
  */
 void* card_handler(void* arg){
     int port = 0;
-    char msg[MAX_BUF_SIZE];
+    char msg[MAX_BUF_SIZE], buf[MAX_BUF_SIZE];
     
 
     memset(msg, 0, sizeof(msg));
@@ -183,15 +197,36 @@ void* card_handler(void* arg){
                         to_move->utente_assegnatario = lavagna.utenti_registrati[i].port;
                         lavagna.utenti_registrati[i].id = to_move->id;
 
+                        // Da cambiare la logica. Dobbiamo successivamente all'aver mandato il messaggio
+                        // utilizzare l'I/O multiplexing per verificare che venga inviato ACK_CARD
                         snprintf(msg, sizeof(msg), "ASYNC: HANDLE_CARD %d %s\n", 
                                         to_move->id, to_move->testo_attivita);
-
-                        pthread_mutex_unlock(&lavagna.sem_cards[0]); 
-                        lavagna_move_card_to_head(to_move, 1);
-                        pthread_mutex_lock(&lavagna.sem_cards[0]);
-
                         send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
-                        break;
+
+                        fd_set read_fds;
+                        struct timeval timeout;  
+                        FD_ZERO(&read_fds);
+                        FD_SET(lavagna.utenti_registrati[i].sock_id, &read_fds);
+
+                        timeout.tv_sec = 3;
+                        timeout.tv_usec = 0;
+                                      
+                        printf("[SERVER] Inviata proposta a %d. Attendo ACK...\n", lavagna.utenti_registrati[i].port);
+
+                        int activity = select(lavagna.utenti_registrati[i].port + 1, &read_fds, NULL, NULL, &timeout);
+                        if (activity > 0) {
+                            int n = recv(lavagna.utenti_registrati[i].sock_id, buf, sizeof(buf)-1, 0);
+
+                            if (strncmp(buf, "ACK_CARD", 8) == 0) {
+                                printf("[SERVER] ACK ricevuto! Sposto card in DOING.\n");
+                                pthread_mutex_unlock(&lavagna.sem_cards[0]);
+                                lavagna_move_card_to_head(to_move, 1);
+                                lavagna.utenti_registrati[i].id = to_move->id;
+                                pthread_mutex_lock(&lavagna.sem_cards[0]);
+                                break;
+                            }
+                            
+                        }
                     }
                 }
                 pthread_mutex_unlock(&lavagna.conn_user_sem);
@@ -200,9 +235,7 @@ void* card_handler(void* arg){
         }
         pthread_mutex_unlock(&lavagna.sem_cards[0]);
          
-        // INCREMENTO DEI TIMER
-
-        // NOTIFICA PING
+        
         printf("Sto per andare a dormire\n");
         sleep(5);
 

@@ -11,26 +11,14 @@
 #include <signal.h>
 #include <structure.h>
 
-// @todo Valutare se rimuovere o meno
-pthread_mutex_t queue_mutex;
-notifica_t n_queue[MAX_NOTIFICATIONS];
-int head = 0, tail = 0, count = 0;
+
 
 bool_t is_review_complete = FALSE;
+uint32_t review_accept = 0;
 
 
 
-void enqueue(char* nuovo_msg) {
-    pthread_mutex_lock(&queue_mutex);
-    if (count < MAX_NOTIFICATIONS) {
-        strncpy(n_queue[tail].messagge, nuovo_msg, MAX_BUF_SIZE - 1);
-        n_queue[tail].messagge[MAX_BUF_SIZE - 1] = '\0'; 
 
-        tail = (tail + 1) % MAX_NOTIFICATIONS;
-        count++;
-    }
-    pthread_mutex_unlock(&queue_mutex);
-}
 
 
 void* client_listener(void* arg);
@@ -43,7 +31,7 @@ int main(int argc, char **argv){
     // Blocco della possibilità di fare CTRL + C all'utente
     // signal(SIGINT, SIG_IGN);
     uint16_t user_buf[MAX_USER];
-    int ret, sd, user_len;
+    int ret, sd, user_len, review_port;
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE], lavagna_buf[MAX_SBUF_SIZE];
     char in_buf[MAX_BUF_SIZE];
@@ -54,7 +42,6 @@ int main(int argc, char **argv){
         return 0;
     }
 
-    pthread_mutex_init(&queue_mutex, NULL);
     pthread_t t_listener;
     pthread_create(&t_listener, NULL, client_listener, argv[1]);
 
@@ -88,15 +75,7 @@ int main(int argc, char **argv){
     }    
     
     uint16_t connessione_attiva = 1;
-    while (connessione_attiva == 1) {
-        pthread_mutex_lock(&queue_mutex);
-        while (count > 0) {
-            printf("\n[NOTIFICA] %s\n", n_queue[head].messagge);
-            head = (head + 1) % MAX_NOTIFICATIONS;
-            count--;
-        }
-        pthread_mutex_unlock(&queue_mutex);
-        
+    while (connessione_attiva == 1) {        
         printf(">>> ");
         fgets(in_buf, sizeof(in_buf), stdin);     
 
@@ -202,6 +181,22 @@ int main(int argc, char **argv){
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
 
+        } else if (sscanf(buf, "OKAY_REVIEW %d", &review_port) == 1){
+            int udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
+            if (udp_sock < 0) {
+                perror("Socket UDP error");
+                continue;
+            }
+
+            struct sockaddr_in dest_addr;
+            memset(&dest_addr, 0, sizeof(dest_addr));
+            dest_addr.sin_family = AF_INET;
+            dest_addr.sin_port = htons(review_port); 
+            inet_pton(AF_INET, "127.0.0.1", &dest_addr.sin_addr);
+
+            char *msg = "OKAY_REVIEW";
+            ssize_t sent = sendto(udp_sock, msg, strlen(msg), 0, 
+                                 (struct sockaddr*)&dest_addr, sizeof(dest_addr));
         } else {
             printf("[ERRORE] Comando non valido!");
         }
@@ -213,7 +208,7 @@ int main(int argc, char **argv){
 
 /**
  * @todo aggiungere un card ACK per accettare l'assegnamento della card
- * Modifica, permettere al socket di accettare sia connessioni TCP che UDP
+ * @todo capire come gestire ste cazzo di notifiche
  */
 void* client_listener(void* arg){
     int port = atoi((char *)arg), ret, len;
@@ -288,7 +283,18 @@ void* client_listener(void* arg){
                 printf("[REVIEW RICHIESTA] %s\n", buf);
                 printf(">>> ");
                 fflush(stdout);
+            } else if (is_review_complete == FALSE && strncmp(buf, "OKAY_REVIEW", 11) == 0) {
+                // devo incrementare un contatore globale
+                review_accept++;
+                if (review_accept == MAX_USER) {
+                    printf("\r\033[K");
+                    printf("[NOTIFICA] Review completata; adesso è possibile terminare la card\n");
+                    printf(">>> ");
+                    is_review_complete = TRUE;
+                }
+                 
             }
+            
             memset(async_buffer, 0, sizeof(async_buffer));
         }
         
@@ -311,7 +317,7 @@ void* client_listener(void* arg){
             if (strcmp(buf, "PING_USER") == 0) {
                 send(tcp_sd, "PONG_LAVAGNA", 13, 0);
             } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
-                // Crea una send di ACK_CARD
+                send(tcp_sd, "ACK_CARD\n", 9, 0);
                 sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
                 //enqueue(async_buffer);
                 printf("\r\033[K");
