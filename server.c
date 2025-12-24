@@ -156,7 +156,7 @@ void* manage_request(void* arg){
             if (c != NULL)
             {
                 pthread_mutex_lock(&lavagna.sem_cards[1]);
-                lavagna_card_remove(c->id, 1);
+                c = lavagna_card_remove(c->id, 1);
                 pthread_mutex_unlock(&lavagna.sem_cards[1]);
                 lavagna_move_card_to_head(c, 2);
                 lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
