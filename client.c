@@ -207,7 +207,7 @@ int main(int argc, char **argv){
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
 
-        } else if (sscanf(buf, "OKAY_REVIEW %d", &review_port) == 1){
+        } else if (sscanf(buf, "OKAY_REVIEW %d\n", &review_port) == 1){
             int udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
             if (udp_sock < 0) {
                 perror("Socket UDP error");
@@ -336,7 +336,7 @@ void* client_listener(void* arg){
                 printf("[REVIEW RICHIESTA] %s\n", buf);
                 printf(">>> ");
                 fflush(stdout);
-            } else if (is_review_complete == FALSE && sscanf(buf, "OKAY_REVIEW %d", &review_send_port) == 1) {
+            } else if (is_review_complete == FALSE && sscanf(buf, "OKAY_REVIEW %d\n", &review_send_port) == 1) {
                 // TODO: SISTEMA I MUTEX
                 pthread_mutex_lock(&review_mutex);
                 if (has_already_voted(review_send_port) == TRUE || review_needed == 0) {
