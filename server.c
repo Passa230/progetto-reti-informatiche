@@ -166,7 +166,7 @@ void* manage_request(void* arg){
             }
             
             printf("[LOG] Nessun Segmentation Fault\n");
-            lavagna_move_card_to_head(c, 2);
+            //lavagna_move_card_to_head(c, 2);
             printf("[LOG] Nessun Segmentation Fault\n");
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
