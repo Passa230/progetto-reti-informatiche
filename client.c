@@ -40,7 +40,7 @@ int main(int argc, char **argv){
         return 1;
     }
     // Blocco della possibilità di fare CTRL + C all'utente
-    // signal(SIGINT, SIG_IGN);
+    signal(SIGINT, SIG_IGN);
     uint16_t user_buf[MAX_USER];
     int ret, sd, user_len;
     uint16_t review_port, send_port;
@@ -79,6 +79,7 @@ int main(int argc, char **argv){
     }
     buf[size] = '\0';
 
+    // TODO: Valutare se implementare un meccanismo per evitare la registrazione su una porta già registrata
     if (strcmp(buf, "ok") == 0) {
         printf("Registrazione avvenuta con successo\n");
     } else {
@@ -186,10 +187,6 @@ int main(int argc, char **argv){
                     user_buf[i] = porta_corretta;
                 }
             }
-
-            //memset(user_buf, 0, sizeof(user_buf));
-            //review_needed = user_len-1;
-            //memset(voters, 0, sizeof(voters));
         } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
@@ -385,10 +382,7 @@ void* client_listener(void* arg){
             } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
                 send(tcp_sd, "ACK_CARD\n", 9, 0);
                 sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
-                //enqueue(async_buffer);
-                //printf("\r\033[K");
                 printf("[NOTIFICA ASINCRONA] %s\n", buf);
-                //printf(">>> ");
                 fflush(stdout);
 
                 memset(async_buffer, 0, sizeof(async_buffer));

@@ -180,6 +180,7 @@ void* manage_request(void* arg){
                     break;
                 }
             }
+            pthread_mutex_unlock(&lavagna.conn_user_sem);
             
 
             //lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
@@ -200,9 +201,9 @@ void* manage_request(void* arg){
  * @brief thread per la gestione delle card. Ogni k secondi il thread controlla se è possibile assegnare
  * delle nuove card a qualche utente, inoltre controlla se il tempo passato dall'ultimo assegnamento di una
  * particolare card supera un certo limite superiore e in tal caso manda un PING al client
- * @todo Questo comando, oltre alla card, include la lista delle porte degli utenti
- * presenti (escluso il destinatario del messaggio), e il numero degli utenti presenti.
- 
+ * @todo aggiungere altri messaggi di log se necessario
+ * @todo implememntare meccanismo della stampa della lavagna ad ogni modifica
+ * @todo  
  */
 void* card_handler(void* arg){
     int port = 0;
@@ -211,10 +212,7 @@ void* card_handler(void* arg){
 
     memset(msg, 0, sizeof(msg));
     while (1) {
-        // ASSEGNAMENTO DELLE CARD
-        //printf("entro nel ciclo!\n");
         pthread_mutex_lock(&lavagna.sem_cards[0]);
-        //printf("Preso il primo lock!\n");
         card_t* card = lavagna.cards[0];
         while (card != NULL) {
             card_t* next = card->next_card;
@@ -292,7 +290,7 @@ void* card_handler(void* arg){
                     if (strcmp(tmp, "PONG_LAVAGNA") == 0) {
                         u->last_ping = 0;
                         c->ultimo_aggiornamento = now;
-                        printf(VERDE "[LOG] PONG dall'utente alla porta %hd "RESET"\n");
+                        printf(VERDE "[LOG] PONG dall'utente alla porta %hd "RESET"\n", u->port);
                     }
                 } else if (difftime(now, u->last_ping) > 30){
                     printf(ROSSO "[ERRORE] TIMEOUT! L'utente %d non ha risposto. Sposto card in To Do"RESET"\n", u->port);
