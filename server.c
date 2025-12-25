@@ -7,6 +7,7 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/select.h>
+#include <include/color.h>
 
 
 void* manage_request(void* arg);
@@ -36,12 +37,12 @@ int main(){
 
     ret = bind(sd, (struct sockaddr*) &my_addr, sizeof(my_addr));
     if (ret < 0) {
-        perror("bind failed");
+        perror(ROSSO "[ERRORE] Errore di binding" RESET);
         return 1;
     }
     ret = listen(sd, 20);
     if (ret < 0) {
-        perror("listen failed");
+        perror(ROSSO "[ERRORE] Errore di ascolto" RESET);
         return 1;
     }
     len = sizeof(cl_addr);   
@@ -50,7 +51,7 @@ int main(){
         // si accetta una richiesta
         int new_sd = accept(sd, (struct sockaddr*)&cl_addr, &len);
         if (new_sd < 0) {
-            perror("accept failed");
+            perror(ROSSO "[ERRORE] Errore di accept" RESET);
             continue;
         }
 
@@ -87,7 +88,7 @@ void* manage_request(void* arg){
     }
     lavagna_hello(port);
     send(user_sd, "ok", strlen("ok") + 1, 0);
-    printf("registrato utente alla porta %hd\n", port);
+    printf(VERDE "[LOG] Utente registrato alla porta %hd" RESET "\n", port);
 
     
     
@@ -108,7 +109,7 @@ void* manage_request(void* arg){
             send(user_sd, "> INSERISCI DESCRIZIONE PER LA CARD [massimo 255 caratteri]", 60, 0);
             size = recv(user_sd, buf, MAX_BUF_SIZE - 1, 0);
             if (size <= 0) {
-                printf("Errore ricezione descrizione card o connessione chiusa\n");
+                printf(ROSSO "[ERRORE] Errore ricezione descrizione card o connessione chiusa"ROSSO"\n");
                 lavagna_quit(port);
                 close(user_sd);
                 pthread_exit(NULL);
@@ -116,7 +117,7 @@ void* manage_request(void* arg){
             buf[size] = '\0';
             
             lavagna_card_add(buf, port);
-            printf("creata card con testo %s", buf);
+            printf(VERDE "[LOG] Creata card con testo %s"RESET"\n", buf);
             send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
@@ -148,6 +149,7 @@ void* manage_request(void* arg){
         } else if (strcmp(buf, "QUIT\n") == 0) {
             lavagna_quit(port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\n\0", 37 , 0);
+            printf(GIALLO "[LOG] Utente uscito alla porta %hd" RESET "\n", port);
             close(user_sd);
             pthread_exit(0);
         } else if(strcmp(buf, "CARD_DONE\n") == 0){
@@ -166,9 +168,9 @@ void* manage_request(void* arg){
             }
             uint16_t p = c->utente_assegnatario;
 
-            printf("[LOG] Nessun Segmentation Fault\n");
+            //printf("[LOG] Nessun Segmentation Fault\n");
             lavagna_move_card_to_head(c, 2);
-            printf("[LOG] Nessun Segmentation Fault\n");
+            //printf("[LOG] Nessun Segmentation Fault\n");
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
             pthread_mutex_lock(&lavagna.conn_user_sem);
@@ -182,15 +184,13 @@ void* manage_request(void* arg){
 
             //lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
             //printf("%s", lavagna_buf);
-            printf("[LOG] Nessun Segmentation Fault\n");
+            printf(VERDE "[LOG] Spostata card in DONE" RESET "\n");
         } else {
             printf("[LOG] Il comando non esiste\n");
             //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
         }
 
-        printf("[LOG] Sono prima della memset\n");
         memset(buf, 0, sizeof(buf));
-        printf("[LOG] Sono dopo la memset\n");
     }
     
 }
