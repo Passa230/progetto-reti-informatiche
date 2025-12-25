@@ -235,14 +235,14 @@ void* card_handler(void* arg){
                         timeout.tv_sec = 3;
                         timeout.tv_usec = 0;
                                       
-                        printf("[SERVER] Inviata proposta a %d. Attendo ACK...\n", lavagna.utenti_registrati[i].port);
+                        printf(GIALLO "[LOG] Inviata proposta a %d. Attendo ACK..." RESET "\n", lavagna.utenti_registrati[i].port);
 
                         int activity = select(lavagna.utenti_registrati[i].sock_id + 1, &read_fds, NULL, NULL, &timeout);
                         if (activity > 0) {
                             int n = recv(lavagna.utenti_registrati[i].sock_id, buf, sizeof(buf)-1, 0);
                             buf[n] = '\0';
                             if (strncmp(buf, "ACK_CARD", 8) == 0) {
-                                printf("[SERVER] ACK ricevuto! Sposto card in DOING.\n");
+                                printf(VERDE "[LOG] ACK ricevuto! Sposto card in DOING." RESET "\n");
                                 lavagna_card_remove(card->id, 0);
                                 card->utente_assegnatario = lavagna.utenti_registrati[i].port;
                                 lavagna.utenti_registrati[i].id = card->id;
@@ -260,7 +260,7 @@ void* card_handler(void* arg){
         pthread_mutex_unlock(&lavagna.sem_cards[0]);
          
         
-        printf("Sto per andare a dormire\n");
+        //printf("Sto per andare a dormire\n");
         sleep(5);
 
         // AGGIORNAMENTO DEI TIMER RELATIVI ALLA LAVAGNA
@@ -270,8 +270,6 @@ void* card_handler(void* arg){
             user_t* u = &lavagna.utenti_registrati[i];
 
             if (u->id == 0) continue;
-
-            printf("Qui ci arrivo senza bloccarmi");
 
             pthread_mutex_lock(&lavagna.sem_cards[1]);
             card_t* c = lavagna_trova_card_per_id(u->port);
@@ -285,7 +283,7 @@ void* card_handler(void* arg){
                     // In caso affermativo si manda un ping
                     send(u->sock_id, "PING_USER", 10, 0);
                     u->last_ping = now;
-                    printf("Inviato ping all'utente alla porta %d\n", u->port);
+                    printf(GIALLO "[LOG] Inviato ping all'utente alla porta %d" RESET "\n", u->port);
                 }
             } else {
                 char tmp[16];
@@ -294,14 +292,13 @@ void* card_handler(void* arg){
                     if (strcmp(tmp, "PONG_LAVAGNA") == 0) {
                         u->last_ping = 0;
                         c->ultimo_aggiornamento = now;
+                        printf(VERDE "[LOG] PONG dall'utente alla porta %hd "RESET"\n");
                     }
                 } else if (difftime(now, u->last_ping) > 30){
-                    printf("TIMEOUT! L'utente %d non ha risposto. Sposto card in To Do\n", u->port);
+                    printf(ROSSO "[ERRORE] TIMEOUT! L'utente %d non ha risposto. Sposto card in To Do"RESET"\n", u->port);
                     c->utente_assegnatario = 0;
                     pthread_mutex_unlock(&lavagna.conn_user_sem);
-                    
-                    //pthread_mutex_lock(&lavagna.sem_cards[1]);
-                    
+                                        
                     c = lavagna_card_remove(c->id, 1);
 
                     pthread_mutex_unlock(&lavagna.sem_cards[1]);
