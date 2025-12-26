@@ -11,6 +11,8 @@
 #include <signal.h>
 #include <include/color.h>
 #include <structure.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 
 
@@ -44,7 +46,7 @@ int main(int argc, char **argv){
     signal(SIGINT, SIG_IGN);
     uint16_t user_buf[MAX_USER];
     int ret, sd, user_len;
-    uint16_t review_port, send_port;
+    uint16_t review_port;
     struct sockaddr_in sv_addr;
     char buf[MAX_BUF_SIZE], lavagna_buf[MAX_SBUF_SIZE];
     char in_buf[MAX_BUF_SIZE];
@@ -225,6 +227,10 @@ int main(int argc, char **argv){
             snprintf(msg, sizeof(msg), "OKAY_REVIEW %d", atoi(argv[1]));
             ssize_t sent = sendto(udp_sock, msg, strlen(msg), 0, 
                                  (struct sockaddr*)&dest_addr, sizeof(dest_addr));
+            if (sent < 0) {
+                printf(ROSSO "[ERRORE] Errore nell'invio della conferma, riprovare" RESET);
+            }
+            
         } else {
             printf("[ERRORE] Comando non valido!\n");
         }
@@ -238,7 +244,8 @@ int main(int argc, char **argv){
  * @todo capire come gestire ste cazzo di notifiche
  */
 void* client_listener(void* arg){
-    int port = atoi((char *)arg), ret, len;
+    int port = atoi((char *)arg), ret;
+    socklen_t len;
     char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
     int tcp_sd, udp_sd, max_sd, server_sd;
     uint16_t review_send_port;
