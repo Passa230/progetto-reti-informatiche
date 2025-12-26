@@ -8,6 +8,9 @@
 #include <signal.h>
 #include <sys/select.h>
 #include <include/color.h>
+#include <errno.h>
+#include <stdio.h>
+
 
 
 void* manage_request(void* arg);
