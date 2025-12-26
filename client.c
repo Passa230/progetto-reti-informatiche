@@ -398,5 +398,6 @@ void* client_listener(void* arg){
         }
 
     }
-    
+
+    return 0;
 }
