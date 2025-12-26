@@ -10,6 +10,8 @@
 #include <include/color.h>
 #include <errno.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 
 
