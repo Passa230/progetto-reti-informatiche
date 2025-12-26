@@ -126,8 +126,8 @@ void* manage_request(void* arg){
             send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
-            int user_len = strlen(out_buf) + 1;
-            int n_user_len = htonl(user_len);
+            uint32_t user_len = (uint32_t)(strlen(out_buf) + 1);
+            uint32_t n_user_len = htonl(user_len);
             send(user_sd, &n_user_len, sizeof(user_len), 0);
             // CORREZIONE 1: Invia solo i byte della stringa + terminatore, non 1023 byte
             send(user_sd, out_buf, user_len, 0); 

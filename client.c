@@ -173,7 +173,7 @@ int main(int argc, char **argv){
         } else if (strcmp(in_buf, "SHOW_USR_LIST\n") == 0){
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
-            int list_len = 0;
+            uint32_t list_len = 0;
             size = recv(sd, &list_len, sizeof(list_len), 0);
             list_len = ntohl(list_len);
 
@@ -250,7 +250,7 @@ int main(int argc, char **argv){
  * @todo capire come gestire ste cazzo di notifiche
  */
 void* client_listener(void* arg){
-    int port = atoi((char *)arg), ret;
+    uint16_t port = atoi((char *)arg), ret;
     socklen_t len;
     char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
     int tcp_sd, udp_sd, max_sd, server_sd;
