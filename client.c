@@ -244,7 +244,8 @@ int main(int argc, char **argv){
  * @todo capire come gestire ste cazzo di notifiche
  */
 void* client_listener(void* arg){
-    int port = atoi((char *)arg), ret, len;
+    int port = atoi((char *)arg), ret;
+    socklen_t len;
     char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
     int tcp_sd, udp_sd, max_sd, server_sd;
     uint16_t review_send_port;
