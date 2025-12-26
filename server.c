@@ -211,7 +211,6 @@ void* manage_request(void* arg){
  * @todo  
  */
 void* card_handler(void* arg){
-    int port = 0;
     char msg[MAX_BUF_SIZE], buf[MAX_BUF_SIZE];
     
 

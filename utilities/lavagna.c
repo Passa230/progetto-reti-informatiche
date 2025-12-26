@@ -8,6 +8,7 @@
 #include <string.h>
 #include <lavagna.h>
 #include <stdlib.h>
+#include <include/color.h>
 
 lavagna_t lavagna;
 
@@ -291,6 +292,7 @@ bool_t lavagna_hello(uint16_t port){
     // Se ci sono troppi utenti registrati la funzione non va a buon fine
     if (lavagna.connected_users == MAX_USER) {
         pthread_mutex_unlock(&lavagna.conn_user_sem);
+        printf(ROSSO "[ERRORE] Numero massimo di utenti raggiunto, attendere che qualcuno abbandoni e riprovare" RESET "\n");
         return FALSE;
     }
     
@@ -303,6 +305,12 @@ bool_t lavagna_hello(uint16_t port){
     inet_pton(AF_INET, "127.0.0.1", &async_addr.sin_addr);
 
     int ret = connect(sd, (struct sockaddr*)&async_addr, sizeof(async_addr));
+    if (ret <= 0) {
+        close(sd);
+        printf(ROSSO "[ERRORE] Non è stato possibile avviare una connessione con l'host %hd" RESET "\n", port);
+        return FALSE;
+    }
+    
 
     // Fine della connessione
 
@@ -412,7 +420,6 @@ int lavagna_user_list(char* buf, size_t max_len){
     // lock sul semaforo degli utenti connessi
     pthread_mutex_lock(&lavagna.conn_user_sem);
 
-    char tmp[32];
     size_t used = 0;
     int written;
 
@@ -429,7 +436,8 @@ int lavagna_user_list(char* buf, size_t max_len){
 
     if (written < 0) {
         pthread_mutex_unlock(&lavagna.conn_user_sem);
-        return;
+        printf(ROSSO "[ERRORE] Non è stato possibile stampare la lista degli utenti" RESET "\n");
+        return "";
     }
 
     used = written;

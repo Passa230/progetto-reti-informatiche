@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <signal.h>
+#include <include/color.h>
 #include <structure.h>
 
 
@@ -60,7 +61,6 @@ int main(int argc, char **argv){
 
 
     sd = socket(AF_INET, SOCK_STREAM, 0);
-    printf("Qui ci arrivo\n");
     
     memset(&sv_addr, 0, sizeof(sv_addr)); 
     sv_addr.sin_family = AF_INET ;        
@@ -81,7 +81,8 @@ int main(int argc, char **argv){
 
     // TODO: Valutare se implementare un meccanismo per evitare la registrazione su una porta già registrata
     if (strcmp(buf, "ok") == 0) {
-        printf("Registrazione avvenuta con successo\n");
+        printf(VERDE "[SUCCESS] Registrazione avvenuta con successo" RESET "\n");
+        printf("---- KANBAN BOARD ----\n\t> CARD_CREATE: permette di creare una nuova card\n\t>SHOW_USR_LIST: mostra gli utenti iscritti alla lavagna, restituisce anche la lista delle porte\n\t> REVIEW_CARD: richiedi una revisione della card che ti è stata assegnata\n\t> CARD_DONE: una volta revisionata la card segnali al server che è completa\n\t> SHOW_LAVAGNA: mostra la lavagna");
     } else {
         printf("Errore di registrazione\n");
         close(sd);
