@@ -307,7 +307,7 @@ bool_t lavagna_hello(uint16_t port){
     inet_pton(AF_INET, "127.0.0.1", &async_addr.sin_addr);
 
     int ret = connect(sd, (struct sockaddr*)&async_addr, sizeof(async_addr));
-    if (ret <= 0) {
+    if (ret < 0) {
         close(sd);
         printf(ROSSO "[ERRORE] Non è stato possibile avviare una connessione con l'host %hd" RESET "\n", port);
         return FALSE;
