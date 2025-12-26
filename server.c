@@ -114,7 +114,7 @@ void* manage_request(void* arg){
             send(user_sd, "> INSERISCI DESCRIZIONE PER LA CARD [massimo 255 caratteri]", 60, 0);
             size = recv(user_sd, buf, MAX_BUF_SIZE - 1, 0);
             if (size <= 0) {
-                printf(ROSSO "[ERRORE] Errore ricezione descrizione card o connessione chiusa"ROSSO"\n");
+                printf(ROSSO "[ERRORE] Errore ricezione descrizione card o connessione chiusa"RESET"\n");
                 lavagna_quit(port);
                 close(user_sd);
                 pthread_exit(NULL);
