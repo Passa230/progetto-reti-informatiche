@@ -44,6 +44,8 @@ int main(int argc, char **argv){
     }
     // Blocco della possibilità di fare CTRL + C all'utente
     signal(SIGINT, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN);
+
     uint16_t user_buf[MAX_USER];
     int ret, sd, user_len;
     uint16_t review_port;
@@ -90,7 +92,7 @@ int main(int argc, char **argv){
     // TODO: Valutare se implementare un meccanismo per evitare la registrazione su una porta già registrata
     if (strcmp(buf, "ok") == 0) {
         printf(VERDE "[SUCCESS] Registrazione avvenuta con successo" RESET "\n");
-        printf("---- KANBAN BOARD ----\n\t> CARD_CREATE: permette di creare una nuova card\n\t>SHOW_USR_LIST: mostra gli utenti iscritti alla lavagna, restituisce anche la lista delle porte\n\t> REVIEW_CARD: richiedi una revisione della card che ti è stata assegnata\n\t> CARD_DONE: una volta revisionata la card segnali al server che è completa\n\t> SHOW_LAVAGNA: mostra la lavagna");
+        printf("---- KANBAN BOARD ----\n\t> CARD_CREATE: permette di creare una nuova card\n\t>SHOW_USR_LIST: mostra gli utenti iscritti alla lavagna, restituisce anche la lista delle porte\n\t> REVIEW_CARD: richiedi una revisione della card che ti è stata assegnata\n\t> CARD_DONE: una volta revisionata la card segnali al server che è completa\n\t> SHOW_LAVAGNA: mostra la lavagna\n");
     } else {
         printf("Errore di registrazione\n");
         close(sd);
@@ -252,7 +254,7 @@ int main(int argc, char **argv){
 void* client_listener(void* arg){
     uint16_t port = atoi((char *)arg), ret;
     socklen_t len;
-    char buf[MAX_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
+    char buf[MAX_NOT_BUF_SIZE], async_buffer[MAX_NOT_BUF_SIZE];
     int tcp_sd, udp_sd, max_sd, server_sd;
     uint16_t review_send_port;
     fd_set read_fds;
@@ -376,7 +378,7 @@ void* client_listener(void* arg){
         }
         
         if (FD_ISSET(tcp_sd, &read_fds)) {
-            ssize_t n = recv(tcp_sd, buf, MAX_BUF_SIZE - 1, 0);
+            ssize_t n = recv(tcp_sd, buf, MAX_NOT_BUF_SIZE - 1, 0);
     
             if (n <= 0) {
                 // Il server ha chiuso la connessione (o crash)
@@ -393,10 +395,20 @@ void* client_listener(void* arg){
 
             if (strcmp(buf, "PING_USER") == 0) {
                 send(tcp_sd, "PONG_LAVAGNA", 13, 0);
-            } else if (sscanf(buf, "ASYNC: HANDLE_CARD %d %[^\n]", &id, testo) == 2){
+            } else if (strncmp(buf, "ASYNC: HANDLE_CARD", 18) == 0){
                 send(tcp_sd, "ACK_CARD\n", 9, 0);
-                sprintf(async_buffer, "Card assegnata #%d: %s\n", id, testo);
-                printf("[NOTIFICA ASINCRONA] %s\n", buf);
+
+                char *ptr_msg = buf + 19; 
+                char *text_start;
+
+                id_t id = (id_t)strtoul(ptr_msg, &text_start, 10);
+                
+                if (*text_start == ' ') text_start++;
+
+                snprintf(async_buffer, sizeof(async_buffer), "Card assegnata #%d: %s\n", id, text_start);
+                async_buffer[strcspn(async_buffer, "\n")] = 0;
+                
+                printf("[NOTIFICA ASINCRONA] %s\n", async_buffer);
                 fflush(stdout);
 
                 memset(async_buffer, 0, sizeof(async_buffer));
