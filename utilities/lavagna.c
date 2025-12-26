@@ -9,6 +9,8 @@
 #include <lavagna.h>
 #include <stdlib.h>
 #include <include/color.h>
+#include <unistd.h>
+
 
 lavagna_t lavagna;
 
@@ -437,7 +439,7 @@ int lavagna_user_list(char* buf, size_t max_len){
     if (written < 0) {
         pthread_mutex_unlock(&lavagna.conn_user_sem);
         printf(ROSSO "[ERRORE] Non è stato possibile stampare la lista degli utenti" RESET "\n");
-        return "";
+        return -1;
     }
 
     used = written;
