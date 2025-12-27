@@ -92,7 +92,16 @@ int main(int argc, char **argv){
     // TODO: Valutare se implementare un meccanismo per evitare la registrazione su una porta già registrata
     if (strcmp(buf, "ok") == 0) {
         printf(VERDE "[SUCCESS] Registrazione avvenuta con successo" RESET "\n");
-        printf("---- KANBAN BOARD ----\n\t> CARD_CREATE: permette di creare una nuova card\n\t>SHOW_USR_LIST: mostra gli utenti iscritti alla lavagna, restituisce anche la lista delle porte\n\t> REVIEW_CARD: richiedi una revisione della card che ti è stata assegnata\n\t> CARD_DONE: una volta revisionata la card segnali al server che è completa\n\t> SHOW_LAVAGNA: mostra la lavagna\n");
+        printf("\n" GIALLO "================ " RESET GRASSETTO "KANBAN BOARD" RESET GIALLO " ================" RESET "\n");
+
+        printf(VERDE "  > %-15s" RESET " : %s\n", "CARD_CREATE",   "Crea una nuova card");
+        printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_USR_LIST", "Mostra lista utenti e le loro porte");
+        printf(VERDE "  > %-15s" RESET " : %s\n", "REVIEW_CARD",   "Richiedi revisione della tua card");
+        printf(VERDE "  > %-15s" RESET " : %s\n", "CARD_DONE",     "Segnala al server che la card è completa");
+        printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_LAVAGNA",  "Visualizza lo stato della lavagna");
+        printf(VERDE "  > %-15s" RESET " : %s\n", "QUIT",          "Chiudi il client ed esci");
+
+        printf(GIALLO "================================================" RESET "\n\n");
     } else {
         printf(ROSSO "[ERRORE] Mancata conferma di registrazione del server" RESET "\n");
         close(sd);
