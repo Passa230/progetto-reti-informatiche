@@ -220,8 +220,8 @@ void lavagna_stampa(char* buf, size_t max_len){
 
     // concatenazione messaggio
     written = snprintf(
-        buf, 
-        max_len, 
+        buf + used, 
+        max_len - used, 
         "|------------------------------|\n|-------------TODO-------------|\n|------------------------------|\n"
     );
 
