@@ -214,7 +214,7 @@ void lavagna_stampa(char* buf, size_t max_len){
 
     written = snprintf(buf + used, max_len - used, 
         "\n" BIANCO "╔══════════════════════════════════════════════════════╗" RESET "\n"
-             BIANCO "║                   " GRASSETTO "KANBAN BOARD" RESET BIANCO "                     ║" RESET "\n"
+             BIANCO "║                   " GRASSETTO "KANBAN BOARD" RESET BIANCO "                      ║" RESET "\n"
              BIANCO "╚══════════════════════════════════════════════════════╝" RESET "\n\n");
     used += written;
 
