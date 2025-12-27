@@ -17,6 +17,7 @@
 
 void* manage_request(void* arg);
 void* card_handler(void* arg);
+void stampa_lavagna();
 
 int main(){
     // inizializzazione della lavagna
@@ -124,6 +125,7 @@ void* manage_request(void* arg){
             lavagna_card_add(buf, port);
             printf(VERDE "[LOG] Creata card con testo %s"RESET"\n", buf);
             send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
+            stampa_lavagna();
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
             uint32_t user_len = (uint32_t)(strlen(out_buf) + 1);
@@ -168,14 +170,12 @@ void* manage_request(void* arg){
             c = lavagna_card_remove(c->id, 1);
             if (c == NULL) {
                 pthread_mutex_unlock(&lavagna.sem_cards[1]);
-                printf("[LOG] Per qualche motivo la card è null");
+                printf("[LOG] Nessuna card trovata :-(");
                 continue;
             }
             uint16_t p = c->utente_assegnatario;
 
-            //printf("[LOG] Nessun Segmentation Fault\n");
             lavagna_move_card_to_head(c, 2);
-            //printf("[LOG] Nessun Segmentation Fault\n");
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
             pthread_mutex_lock(&lavagna.conn_user_sem);
@@ -187,10 +187,8 @@ void* manage_request(void* arg){
             }
             pthread_mutex_unlock(&lavagna.conn_user_sem);
             
-
-            //lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
-            //printf("%s", lavagna_buf);
             printf(VERDE "[LOG] Spostata card in DONE" RESET "\n");
+            stampa_lavagna();
         } else {
             printf("[LOG] Il comando non esiste\n");
             //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
@@ -249,6 +247,8 @@ void* card_handler(void* arg){
                                 card->utente_assegnatario = lavagna.utenti_registrati[i].port;
                                 lavagna.utenti_registrati[i].id = card->id;
                                 lavagna_move_card_to_head(card, 1);
+
+                                stampa_lavagna();
                                 break;
                             }
                             
@@ -261,9 +261,7 @@ void* card_handler(void* arg){
         }
         pthread_mutex_unlock(&lavagna.sem_cards[0]);
          
-        
-        //printf("Sto per andare a dormire\n");
-        sleep(5);
+        sleep(HANDLER_SLEEP_TIME);
 
         // AGGIORNAMENTO DEI TIMER RELATIVI ALLA LAVAGNA
         time_t now = time(NULL);
@@ -306,12 +304,8 @@ void* card_handler(void* arg){
                     pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
                     if (c != NULL) {
-                        lavagna_move_card_to_head(c, 0); // Sposta in TODO
-
-                        // Stampa (usa malloc per sicurezza come detto prima)
-                        //char visualizza[MAX_SBUF_SIZE];
-                        //lavagna_stampa(visualizza, MAX_SBUF_SIZE);
-                        //printf("%s\n", visualizza);
+                        lavagna_move_card_to_head(c, 0);
+                        stampa_lavagna();
                     }                    
 
                     pthread_mutex_lock(&lavagna.conn_user_sem);
@@ -324,4 +318,12 @@ void* card_handler(void* arg){
         }
         pthread_mutex_unlock(&lavagna.conn_user_sem);
     }
+}
+
+void stampa_lavagna(){
+    char* text = (char*) malloc(MAX_SBUF_SIZE);
+    lavagna_stampa(text, MAX_SBUF_SIZE);
+    printf("%s", text);
+    free(text);
+    text = NULL;
 }

@@ -13,6 +13,7 @@
 #define MAX_NOT_BUF_SIZE    MAX_BUF_SIZE + MAX_NOT_CMD_SIZE
 #define MAX_PONG_TIME       30
 #define PING_TIMEOUT        90
+#define HANDLER_SLEEP_TIME  5
 
 // Gestione dei booleani
 #define TRUE                0   

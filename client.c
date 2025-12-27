@@ -55,7 +55,7 @@ int main(int argc, char **argv){
     ssize_t size;
 
     if (atoi(argv[1]) < 5678) {
-        printf("ERRORE: Non è possibile registrarsi a questa porta\n");        
+        printf(ROSSO "[ERRORE] Non è possibile registrarsi a questa porta" RESET "\n");        
         return 0;
     }
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv){
     
     size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
     if (size <= 0) {
-        printf("Errore di ricezione o connessione chiusa\n");
+        printf(ROSSO "[ERRORE] di ricezione o connessione chiusa"RESET"\n");
         close(sd);
         return 1;
     }
@@ -94,7 +94,7 @@ int main(int argc, char **argv){
         printf(VERDE "[SUCCESS] Registrazione avvenuta con successo" RESET "\n");
         printf("---- KANBAN BOARD ----\n\t> CARD_CREATE: permette di creare una nuova card\n\t>SHOW_USR_LIST: mostra gli utenti iscritti alla lavagna, restituisce anche la lista delle porte\n\t> REVIEW_CARD: richiedi una revisione della card che ti è stata assegnata\n\t> CARD_DONE: una volta revisionata la card segnali al server che è completa\n\t> SHOW_LAVAGNA: mostra la lavagna\n");
     } else {
-        printf("Errore di registrazione\n");
+        printf(ROSSO "[ERRORE] Mancata conferma di registrazione del server" RESET "\n");
         close(sd);
         return 1;
     }    
@@ -116,17 +116,17 @@ int main(int argc, char **argv){
             fgets(in_buf, sizeof(in_buf), stdin);
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) {
-                printf("Connessione chiusa dal server\n");
+                printf(ROSSO "[ERRORE] Connessione chiusa dal server"RESET"\n");
                 break;
             }
             size = recv(sd, buf, MAX_BUF_SIZE, 0);
             printf("%s\n", buf);
         } else if (strcmp(in_buf, "REVIEW_CARD\n") == 0) {
             if (user_len <= 0){
-                printf("[ERRORE] Richiedi gli utenti prima di revisionare la card\n");
+                printf(ROSSO "[ERRORE] Richiedi gli utenti prima di revisionare la card"RESET"\n");
                 continue;
             } else if (user_len == 1){
-                printf("[ERRORE] Non ci sono abbastanza utenti, attendi che qualcuno si registri e riprova\n");
+                printf(ROSSO "[ERRORE] Non ci sono abbastanza utenti, attendi che qualcuno si registri e riprova"RESET"\n");
                 continue;
             }
 
@@ -209,7 +209,7 @@ int main(int argc, char **argv){
             return 0;
         } else if(strcmp(in_buf, "CARD_DONE\n") == 0){
             if(is_review_complete == FALSE){
-                printf("[ERRORE] Attendi che almeno un altro client revisioni il lavoro");
+                printf(ROSSO "[ERRORE] Attendi che almeno un altro client revisioni il lavoro\n" RESET);
                 continue;
             }
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
@@ -240,7 +240,7 @@ int main(int argc, char **argv){
             }
             
         } else {
-            printf("[ERRORE] Comando non valido!\n");
+            printf(ROSSO "[ERRORE] Comando non valido!"RESET"\n");
         }
 
     }
