@@ -125,7 +125,7 @@ void* manage_request(void* arg){
             lavagna_card_add(buf, port);
             printf(VERDE "[LOG] Creata card con testo %s"RESET"\n", buf);
             send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
-            stampa_lavagna();
+            //stampa_lavagna();
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             lavagna_user_list(out_buf, MAX_BUF_SIZE);
             uint32_t user_len = (uint32_t)(strlen(out_buf) + 1);
@@ -188,7 +188,7 @@ void* manage_request(void* arg){
             pthread_mutex_unlock(&lavagna.conn_user_sem);
             
             printf(VERDE "[LOG] Spostata card in DONE" RESET "\n");
-            stampa_lavagna();
+            //stampa_lavagna();
         } else {
             printf("[LOG] Il comando non esiste\n");
             //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
@@ -247,7 +247,7 @@ void* card_handler(void* arg){
                                 lavagna.utenti_registrati[i].id = card->id;
                                 lavagna_move_card_to_head(card, 1);
 
-                                stampa_lavagna();
+                                //stampa_lavagna();
                                 break;
                             }
                             
@@ -304,7 +304,7 @@ void* card_handler(void* arg){
 
                     if (c != NULL) {
                         lavagna_move_card_to_head(c, 0);
-                        stampa_lavagna();
+                        //stampa_lavagna();
                     }                    
 
                     pthread_mutex_lock(&lavagna.conn_user_sem);
