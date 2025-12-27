@@ -253,7 +253,7 @@ int main(int argc, char **argv){
                 printf(ROSSO "[ERRORE] Errore nell'invio della conferma, riprovare" RESET);
             }
             
-        } else if (strcmp(in_buf, "CLEAR") == 0){
+        } else if (strcmp(in_buf, "CLEAR\n") == 0){
             printf("\033[H\033[J");
             stampa_menu();
         } else {
