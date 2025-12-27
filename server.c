@@ -205,7 +205,6 @@ void* manage_request(void* arg){
  * delle nuove card a qualche utente, inoltre controlla se il tempo passato dall'ultimo assegnamento di una
  * particolare card supera un certo limite superiore e in tal caso manda un PING al client
  * @todo aggiungere altri messaggi di log se necessario
- * @todo implememntare meccanismo della stampa della lavagna ad ogni modifica
  * @todo  
  */
 void* card_handler(void* arg){
