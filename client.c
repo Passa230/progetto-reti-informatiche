@@ -267,6 +267,9 @@ int main(int argc, char **argv){
 
 /**
  * @todo capire come gestire ste cazzo di notifiche
+ * @todo aggiungere due variabili globali xhe contengono testo e id della card assegnata
+ * @todo creare comando TODO_CARD che permette di visualizzare la card assegnata
+ * @todo usare variabili per utente
  */
 void* client_listener(void* arg){
     uint16_t port = atoi((char *)arg), ret;
