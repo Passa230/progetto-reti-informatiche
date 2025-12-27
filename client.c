@@ -31,6 +31,20 @@ bool_t has_already_voted(uint16_t port){
 }
 
 
+void stampa_menu(){
+    printf("\n" GIALLO "================ " RESET GRASSETTO "KANBAN BOARD" RESET GIALLO " ================" RESET "\n");
+
+    printf(VERDE "  > %-15s" RESET " : %s\n", "CARD_CREATE",   "Crea una nuova card");
+    printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_USR_LIST", "Mostra lista utenti e le loro porte");
+    printf(VERDE "  > %-15s" RESET " : %s\n", "REVIEW_CARD",   "Richiedi revisione della tua card");
+    printf(VERDE "  > %-15s" RESET " : %s\n", "CARD_DONE",     "Segnala al server che la card è completa");
+    printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_LAVAGNA",  "Visualizza lo stato della lavagna");
+    printf(VERDE "  > %-15s" RESET " : %s\n", "CLEAR",         "Pulisci lo schermo"); 
+    printf(VERDE "  > %-15s" RESET " : %s\n", "QUIT",          "Chiudi il client ed esci");
+
+    printf(GIALLO "================================================" RESET "\n\n");
+}
+
 
 
 
@@ -92,16 +106,7 @@ int main(int argc, char **argv){
     // TODO: Valutare se implementare un meccanismo per evitare la registrazione su una porta già registrata
     if (strcmp(buf, "ok") == 0) {
         printf(VERDE "[SUCCESS] Registrazione avvenuta con successo" RESET "\n");
-        printf("\n" GIALLO "================ " RESET GRASSETTO "KANBAN BOARD" RESET GIALLO " ================" RESET "\n");
-
-        printf(VERDE "  > %-15s" RESET " : %s\n", "CARD_CREATE",   "Crea una nuova card");
-        printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_USR_LIST", "Mostra lista utenti e le loro porte");
-        printf(VERDE "  > %-15s" RESET " : %s\n", "REVIEW_CARD",   "Richiedi revisione della tua card");
-        printf(VERDE "  > %-15s" RESET " : %s\n", "CARD_DONE",     "Segnala al server che la card è completa");
-        printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_LAVAGNA",  "Visualizza lo stato della lavagna");
-        printf(VERDE "  > %-15s" RESET " : %s\n", "QUIT",          "Chiudi il client ed esci");
-
-        printf(GIALLO "================================================" RESET "\n\n");
+        stampa_menu();
     } else {
         printf(ROSSO "[ERRORE] Mancata conferma di registrazione del server" RESET "\n");
         close(sd);
@@ -248,6 +253,9 @@ int main(int argc, char **argv){
                 printf(ROSSO "[ERRORE] Errore nell'invio della conferma, riprovare" RESET);
             }
             
+        } else if (strcmp(in_buf, "CLEAR") == 0){
+            printf("\033[H\033[J");
+            stampa_menu();
         } else {
             printf(ROSSO "[ERRORE] Comando non valido!"RESET"\n");
         }
