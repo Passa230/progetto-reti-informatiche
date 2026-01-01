@@ -281,7 +281,7 @@ int main(int argc, char **argv){
                 printf(CIANO "╠══════════════════════════════╦═══════════════════════╣" RESET "\n");
                 
                 // Prima riga: ID e Stato (allineati)
-                printf(CIANO "║" RESET "  ID: " GRASSETTO "#%-23d" RESET CIANO "║" RESET "  STATO: " GIALLO "DOING" RESET "     " CIANO "   ║" RESET "\n", 
+                printf(CIANO "║" RESET "  ID: " GRASSETTO "#%-23d" RESET CIANO "║" RESET "  STATO: " GIALLO "DOING" RESET "     " CIANO "    ║" RESET "\n", 
                     assigned_card_id);
                 
                 printf(CIANO "╠══════════════════════════════╩═══════════════════════╣" RESET "\n");
@@ -479,7 +479,7 @@ void* client_listener(void* arg){
                 pthread_mutex_lock(&assigned_card_mutex);
                 strncpy(assigned_card_text, text_start, MAX_BUF_SIZE - 1);
                 assigned_card_text[MAX_BUF_SIZE - 1] = '\0';
-                assigned_card_text[strcspn(assigned_card_text, "\r\n")];
+                assigned_card_text[strcspn(assigned_card_text, "\r\n")] = 0;
                 assigned_card_id = id; 
                 pthread_mutex_unlock(&assigned_card_mutex);
                 
