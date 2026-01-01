@@ -121,6 +121,7 @@ void* manage_request(void* arg){
                 pthread_exit(NULL);
             }
             buf[size] = '\0';
+            buf[strcspn(buf, "\r\n")] = 0;
             
             lavagna_card_add(buf, port);
             printf(VERDE "[LOG] Creata card con testo %s"RESET"\n", buf);

@@ -218,68 +218,7 @@ void lavagna_stampa(char* buf, size_t max_len){
              BIANCO "╚══════════════════════════════════════════════════════╝" RESET "\n\n");
     used += written;
 
-    /* // concatenazione messaggio
-    written = snprintf(
-        buf + used, 
-        max_len - used, 
-        "|------------------------------|\n|-------------TODO-------------|\n|------------------------------|\n"
-    );
-
-    used += written;
-
-    card_t* list = lavagna.cards[0];
-    while (list != NULL) {
-        written = snprintf(
-            buf + used,
-            max_len -used,
-            "  - %s",
-            list->testo_attivita
-        );
-        used += written;
-        list = list->next_card;
-    }
-
-    written = snprintf(
-        buf + used, 
-        max_len - used, 
-        "|------------------------------|\n|-------------DOING------------|\n|------------------------------|\n"
-    );
-
-    used += written;
-
-    list = lavagna.cards[1];
-    while (list != NULL) {
-        written = snprintf(
-            buf + used,
-            max_len -used,
-            "  - %s",
-            list->testo_attivita
-        );
-        used += written;
-        list = list->next_card;
-    }
-
-    written = snprintf(
-        buf + used, 
-        max_len - used, 
-        "|------------------------------|\n|-------------DONE-------------|\n|------------------------------|\n"
-    );
-
-    used += written;
-
-    list = lavagna.cards[2];
-    while (list != NULL) {
-        written = snprintf(
-            buf + used,
-            max_len -used,
-            "  - %s",
-            list->testo_attivita
-        );
-        used += written;
-        list = list->next_card;
-    }
-    */
-
+    
     const char* titoli[] = {"TO DO (Da fare)", "DOING (In corso)", "DONE (Completato)"};
     const char* colori[] = {ROSSO, GIALLO, VERDE};
     
