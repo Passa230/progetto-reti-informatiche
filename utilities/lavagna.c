@@ -218,7 +218,7 @@ void lavagna_stampa(char* buf, size_t max_len){
              BIANCO "╚══════════════════════════════════════════════════════╝" RESET "\n\n");
     used += written;
 
-    // concatenazione messaggio
+    /* // concatenazione messaggio
     written = snprintf(
         buf + used, 
         max_len - used, 
@@ -278,7 +278,67 @@ void lavagna_stampa(char* buf, size_t max_len){
         used += written;
         list = list->next_card;
     }
+    */
+
+    const char* titoli[] = {"TO DO (Da fare)", "DOING (In corso)", "DONE (Completato)"};
+    const char* colori[] = {ROSSO, GIALLO, VERDE};
     
+    for (int i = 0; i < MAX_COLUMN; i++) {
+        // Intestazione Colonna
+        written = snprintf(buf + used, max_len - used, 
+            "%s" GRASSETTO " [%s] " RESET "\n", 
+            colori[i], titoli[i]);
+        used += written;
+
+        // Separatore sotto il titolo
+        written = snprintf(buf + used, max_len - used, 
+            "%s" "--------------------------------------------------------" RESET "\n", 
+            colori[i]);
+        used += written;
+
+        card_t* curr = lavagna.cards[i];
+        
+        if (curr == NULL) {
+            written = snprintf(buf + used, max_len - used, "  (Nessuna attività in questa colonna)\n\n");
+            used += written;
+        }
+
+        // --- CICLO SULLE CARD DELLA COLONNA ---
+        while (curr != NULL) {
+            // Determina quale utente mostrare:
+            // In TO DO: mostriamo chi l'ha creata (Creatore)
+            // In DOING/DONE: mostriamo chi la sta facendo/fatta (Assegnatario)
+            uint16_t utente_rif = (i == 0) ? curr->utente_creatore : curr->utente_assegnatario;
+            char etichetta_utente[20];
+            
+            if (i == 0) strcpy(etichetta_utente, "Creato da");
+            else if (i == 1) strcpy(etichetta_utente, "In carico a");
+            else strcpy(etichetta_utente, "Finito da");
+
+            // Stampa della CARD come un box
+            written = snprintf(buf + used, max_len - used,
+                "  +--------------------------------------------------+\n"
+                "  | " GRASSETTO "ID: %-4d" RESET " | %-12s: " CIANO "%-5d" RESET "       |\n"
+                "  |--------------------------------------------------|\n"
+                "  | %-48.48s |\n"  // Taglia il testo a 48 caratteri per non rompere il box
+                "  +--------------------------------------------------+\n",
+                curr->id, 
+                etichetta_utente, 
+                utente_rif,
+                curr->testo_attivita
+            );
+            
+            // Controllo buffer overflow
+            if (written < 0 || written >= max_len - used) break;
+            used += written;
+
+            curr = curr->next_card;
+        }
+        
+        // Spazio extra tra le colonne
+        written = snprintf(buf + used, max_len - used, "\n");
+        used += written;
+    }
     
     for (int i = 0; i < 3; i++) {
         pthread_mutex_unlock(&lavagna.sem_cards[i]);
