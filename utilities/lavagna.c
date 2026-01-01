@@ -423,50 +423,67 @@ bool_t lavagna_is_user_registerd(uint16_t port){
  */
 
 int lavagna_user_list(char* buf, size_t max_len){
-
-    // lock sul semaforo degli utenti connessi
     pthread_mutex_lock(&lavagna.conn_user_sem);
 
     size_t used = 0;
     int written;
 
-    // pulizia del buffer
+    // Pulizia del buffer
     memset(buf, 0, max_len);
 
-    // concatenazione messaggio
-    written = snprintf(
-        buf, 
-        max_len, 
-        "|-------------------------|\n|--- %s ---|\n|-------------------------|\n", 
-        "UTENTI REGISTRATI"
-    );
+    // --- INTESTAZIONE TABELLA ---
+    written = snprintf(buf + used, max_len - used,
+        "\n" BLU "╔══════════════════════════════════════════════════╗" RESET "\n"
+             BLU "║" RESET "                " GRASSETTO "UTENTI CONNESSI" RESET "               " BLU "║" RESET "\n"
+             BLU "╠══════════════╦═══════════════════════════════════╣" RESET "\n"
+             BLU "║" RESET GRASSETTO "    PORTA     " RESET BLU "║" RESET GRASSETTO "            STATO              " RESET BLU "║" RESET "\n"
+             BLU "╠══════════════╬═══════════════════════════════════╣" RESET "\n");
+    used += written;
 
-    if (written < 0) {
-        pthread_mutex_unlock(&lavagna.conn_user_sem);
-        printf(ROSSO "[ERRORE] Non è stato possibile stampare la lista degli utenti" RESET "\n");
-        return -1;
-    }
-
-    used = written;
-
+    int count = 0;
     for (int i = 0; i < MAX_USER; i++) {
         if (lavagna.utenti_registrati[i].port != 0) {
-            written = snprintf(
-                buf + used,
-                max_len - used,
-                "|---       %d        ---|\n",
-                lavagna.utenti_registrati[i].port
+            count++;
+            char stato[40];
+            const char* colore_stato;
+
+            // Determiniamo lo stato dell'utente
+            if (lavagna.utenti_registrati[i].id == 0) {
+                // Utente registrato ma senza card assegnata
+                colore_stato = VERDE;
+                snprintf(stato, sizeof(stato), "Libero (Pronto)");
+            } else {
+                // Utente che ha una card in "Doing" [cite: 37]
+                colore_stato = GIALLO;
+                snprintf(stato, sizeof(stato), "Lavorando su Card #%d", lavagna.utenti_registrati[i].id);
+            }
+
+            // Stampa della riga utente
+            written = snprintf(buf + used, max_len - used,
+                "║    %-8d  ║ %s%-31.31s " RESET BLU "║" RESET "\n",
+                lavagna.utenti_registrati[i].port,
+                colore_stato,
+                stato
             );
 
-            if (written < 0 || written >= max_len - used)
-                break;
-            
-            used += written;   
+            if (written < 0 || written >= max_len - used) break;
+            used += written; 
         }
     }
+
+    if (count == 0) {
+        written = snprintf(buf + used, max_len - used,
+            "║              (Nessun utente connesso)            ║\n");
+        used += written;
+    }
+
+    // --- CHIUSURA TABELLA ---
+    written = snprintf(buf + used, max_len - used,
+        BLU "╚══════════════╩═══════════════════════════════════╝" RESET "\n");
+    used += written;
     
     pthread_mutex_unlock(&lavagna.conn_user_sem);
-    return used;
+    return (int)used;
 }
 
 // TODO --> Sostituire int ID con uint16_t id
