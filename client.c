@@ -22,6 +22,10 @@ uint16_t voters[MAX_USER];
 time_t review_start_time = 0;
 pthread_mutex_t review_mutex;
 
+id_t assigned_card_id = -1;
+char assigned_card_text[MAX_BUF_SIZE];
+pthread_mutex_t assigned_card_mutex;
+
 
 bool_t has_already_voted(uint16_t port){
     for (int i = 0; i < review_received; i++) {
@@ -75,6 +79,7 @@ int main(int argc, char **argv){
     }
 
     pthread_mutex_init(&review_mutex, NULL);
+    pthread_mutex_init(&assigned_card_mutex, NULL);
     pthread_t t_listener;
     pthread_create(&t_listener, NULL, client_listener, argv[1]);
 
@@ -142,6 +147,9 @@ int main(int argc, char **argv){
                 continue;
             } else if (user_len == 1){
                 printf(ROSSO "[ERRORE] Non ci sono abbastanza utenti, attendi che qualcuno si registri e riprova"RESET"\n");
+                continue;
+            } else if (assigned_card_id == -1){
+                printf(ROSSO "[ERRORE] Nessuna card assegnata all'utente" RESET);
                 continue;
             }
 
@@ -230,6 +238,11 @@ int main(int argc, char **argv){
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
 
+            pthread_mutex_lock(&assigned_card_mutex);
+            assigned_card_id = -1;
+            memset(assigned_card_text, 0, strlen(assigned_card_text));
+            pthread_mutex_unlock(&assigned_card_mutex);
+
         } else if (strncmp(in_buf, "OKAY_REVIEW", 11) == 0){
             sscanf(in_buf, "OKAY_REVIEW %hd\n", &review_port);
             int udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -255,8 +268,32 @@ int main(int argc, char **argv){
             }
             
         } else if (strcmp(in_buf, "CLEAR\n") == 0){
-            printf("\033[H\033[J");
+            printf("\033[H\033[2J\033[3J");
             stampa_menu();
+        } else if(strcmp(in_buf, "SHOW_CARD\n") == 0){
+            pthread_mutex_lock(&assigned_card_mutex);
+            if (assigned_card_id == -1) {
+                printf(ROSSO "\n[ERRORE] Al momento non hai nessuna card in gestione.\n" RESET);
+            } else {
+                // Formattazione in stile Kanban Header
+                printf("\n" CIANO "╔══════════════════════════════════════════════════════╗" RESET "\n");
+                printf(CIANO "║" RESET "               " GRASSETTO "DETTAGLI CARD ASSEGNATA" RESET "                " CIANO "║" RESET "\n");
+                printf(CIANO "╠══════════════════════════════╦═══════════════════════╣" RESET "\n");
+                
+                // Prima riga: ID e Stato (allineati)
+                printf(CIANO "║" RESET "  ID: " GRASSETTO "#%-23d" RESET CIANO "║" RESET "  STATO: " GIALLO "DOING" RESET "     " CIANO "║" RESET "\n", 
+                    assigned_card_id);
+                
+                printf(CIANO "╠══════════════════════════════╩═══════════════════════╣" RESET "\n");
+                printf(CIANO "║" RESET "  DESCRIZIONE ATTIVITÀ:                               " CIANO "║" RESET "\n");
+                
+                // Testo dell'attività (troncato a 52 caratteri per non rompere il box)
+                printf(CIANO "║" RESET "  %-52.52s" CIANO "║" RESET "\n", 
+                    assigned_card_text);
+                
+                printf(CIANO "╚══════════════════════════════════════════════════════╝" RESET "\n\n");
+            }
+            pthread_mutex_unlock(&assigned_card_mutex);
         } else {
             printf(ROSSO "[ERRORE] Comando non valido!"RESET"\n");
         }
@@ -432,6 +469,19 @@ void* client_listener(void* arg){
                 printf("[NOTIFICA ASINCRONA] %s\n", async_buffer);
                 fflush(stdout);
 
+                
+                pthread_mutex_lock(&review_mutex);
+                is_review_complete = FALSE;
+                review_received = 0;
+                memset(voters, 0, sizeof(voters));
+                pthread_mutex_unlock(&review_mutex);
+
+                pthread_mutex_lock(&assigned_card_mutex);
+                strncpy(assigned_card_text, text_start, MAX_BUF_SIZE - 1);
+                assigned_card_text[MAX_BUF_SIZE - 1] = '\0';
+                assigned_card_id = id; 
+                pthread_mutex_unlock(&assigned_card_mutex);
+                
                 memset(async_buffer, 0, sizeof(async_buffer));
             }
         }
