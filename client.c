@@ -39,6 +39,7 @@ void stampa_menu(){
     printf(VERDE "  > %-15s" RESET " : %s\n", "REVIEW_CARD",   "Richiedi revisione della tua card");
     printf(VERDE "  > %-15s" RESET " : %s\n", "CARD_DONE",     "Segnala al server che la card è completa");
     printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_LAVAGNA",  "Visualizza lo stato della lavagna");
+    printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_CARD",     "Visualizza la card assegnata all'utente");
     printf(VERDE "  > %-15s" RESET " : %s\n", "CLEAR",         "Pulisci lo schermo"); 
     printf(VERDE "  > %-15s" RESET " : %s\n", "QUIT",          "Chiudi il client ed esci");
 
