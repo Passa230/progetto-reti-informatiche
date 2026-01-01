@@ -436,7 +436,7 @@ int lavagna_user_list(char* buf, size_t max_len){
         "\n" BLU "╔══════════════════════════════════════════════════╗" RESET "\n"
              BLU "║" RESET "                " GRASSETTO "UTENTI CONNESSI" RESET "                   " BLU "║" RESET "\n"
              BLU "╠══════════════╦═══════════════════════════════════╣" RESET "\n"
-             BLU "║" RESET GRASSETTO "    PORTA     " RESET BLU " ║" RESET GRASSETTO "            STATO              " RESET BLU "   ║" RESET "\n"
+             BLU "║" RESET GRASSETTO "    PORTA     " RESET BLU "║" RESET GRASSETTO "            STATO              " RESET BLU "    ║" RESET "\n"
              BLU "╠══════════════╬═══════════════════════════════════╣" RESET "\n");
     used += written;
 
