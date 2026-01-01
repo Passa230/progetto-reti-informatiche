@@ -193,9 +193,9 @@ int main(int argc, char **argv){
             size = recv(sd, &list_len, sizeof(list_len), 0);
             list_len = ntohl(list_len);
 
-            memset(buf, 0, MAX_BUF_SIZE);
-            size = recv(sd, buf, list_len, 0);
-            printf("%s\n", buf);
+            memset(lavagna_buf, 0, MAX_SBUF_SIZE);
+            size = recv(sd, lavagna_buf, list_len, 0);
+            printf("%s\n", lavagna_buf);
 
 
             uint32_t net_len;
