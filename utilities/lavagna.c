@@ -434,9 +434,9 @@ int lavagna_user_list(char* buf, size_t max_len){
     // --- INTESTAZIONE TABELLA ---
     written = snprintf(buf + used, max_len - used,
         "\n" BLU "╔══════════════════════════════════════════════════╗" RESET "\n"
-             BLU "║" RESET "                " GRASSETTO "UTENTI CONNESSI" RESET "                  " BLU "║" RESET "\n"
+             BLU "║" RESET "                " GRASSETTO "UTENTI CONNESSI" RESET "                   " BLU "║" RESET "\n"
              BLU "╠══════════════╦═══════════════════════════════════╣" RESET "\n"
-             BLU "║" RESET GRASSETTO "    PORTA     " RESET BLU "║" RESET GRASSETTO "            STATO              " RESET BLU "║" RESET "\n"
+             BLU "║" RESET GRASSETTO "    PORTA     " RESET BLU "    ║" RESET GRASSETTO "            STATO              " RESET BLU "║" RESET "\n"
              BLU "╠══════════════╬═══════════════════════════════════╣" RESET "\n");
     used += written;
 
@@ -460,7 +460,7 @@ int lavagna_user_list(char* buf, size_t max_len){
 
             // Stampa della riga utente
             written = snprintf(buf + used, max_len - used,
-                "║    %-8d  ║ %s%-31.31s " RESET BLU "║" RESET "\n",
+                "║    %-8d  ║ %s%-31.31s " RESET BLU "  ║" RESET "\n",
                 lavagna.utenti_registrati[i].port,
                 colore_stato,
                 stato

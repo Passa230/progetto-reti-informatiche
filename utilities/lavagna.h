@@ -67,8 +67,11 @@ void lavagna_card_change(id_t id, id_t src, id_t dest);
 
 /**
  * @brief Stampa il contenuto della lavagna
+ * 
+ * @param buf il buffer in cui salvare la lavagna
+ * @param max_len lunghezza massima del buffer
  */
-void lavagna_stampa();
+void lavagna_stampa(char* buf, size_t max_len);
 
 /**
  * @brief Funzione che permette all'utente di registrarsi alla lavagna
