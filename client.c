@@ -224,9 +224,17 @@ int main(int argc, char **argv){
         } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
-            uint32_t lavagna_size;
-            size = recv(sd, &lavagna_size, sizeof(uint32_t), 0);
-            size = recv(sd, lavagna_buf, lavagna_size, 0);
+            uint32_t n_lavagna_size, lavagna_size;
+            size = recv(sd, &n_lavagna_size, sizeof(uint32_t), 0);
+            lavagna_size = ntohl(n_lavagna_size);
+
+            int letti = 0;
+            while (letti < lavagna_size) {
+                int r = recv(sd, lavagna_buf + letti, lavagna_size - letti, 0);
+                if (r <= 0) break;
+                letti += r;
+            }
+            lavagna_buf[lavagna_size] = '\0';
             printf("%s\n", lavagna_buf);
         } else if(strcmp(in_buf, "QUIT\n") == 0){
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
