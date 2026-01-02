@@ -98,7 +98,7 @@ int main(int argc, char **argv){
         return 0;
     }
     
-    size = send(sd, argv[1], strlen(argv[1]) + 1, 0);    // si aspetta la conferma della registrazione
+    size = send(sd, argv[1], strlen(argv[1]) + 1, 0);    
     // printf("Qui ci arrivo\n");
     
     size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
@@ -109,7 +109,6 @@ int main(int argc, char **argv){
     }
     buf[size] = '\0';
 
-    // TODO: Valutare se implementare un meccanismo per evitare la registrazione su una porta già registrata
     if (strcmp(buf, "ok") == 0) {
         printf(VERDE "[SUCCESS] Registrazione avvenuta con successo" RESET "\n");
         stampa_menu();
@@ -159,7 +158,7 @@ int main(int argc, char **argv){
                 continue;
             }
 
-            pthread_mutex_lock(&review_mutex); // Lock se usi mutex (consigliato)
+            pthread_mutex_lock(&review_mutex);
             review_received = 0;
             review_needed = user_len - 1;
             is_review_complete = FALSE;
@@ -217,7 +216,6 @@ int main(int argc, char **argv){
                 
                 for (int i = 0; i < user_len; i++) {
                     uint16_t porta_corretta = ntohs(user_buf[i]); // <--- CONVERSIONE QUI
-                    //printf("  - Utente sulla porta: %d\n", porta_corretta);
                     user_buf[i] = porta_corretta;
                 }
             }
@@ -290,19 +288,16 @@ int main(int argc, char **argv){
             if (assigned_card_id == -1) {
                 printf(ROSSO "\n[ERRORE] Al momento non hai nessuna card in gestione.\n" RESET);
             } else {
-                // Formattazione in stile Kanban Header
                 printf("\n" CIANO "╔══════════════════════════════════════════════════════╗" RESET "\n");
                 printf(CIANO "║" RESET "               " GRASSETTO "DETTAGLI CARD ASSEGNATA" RESET "                " CIANO "║" RESET "\n");
                 printf(CIANO "╠══════════════════════════════╦═══════════════════════╣" RESET "\n");
                 
-                // Prima riga: ID e Stato (allineati)
                 printf(CIANO "║" RESET "  ID: " GRASSETTO "#%-23d" RESET CIANO "║" RESET "  STATO: " GIALLO "DOING" RESET "     " CIANO "    ║" RESET "\n", 
                     assigned_card_id);
                 
                 printf(CIANO "╠══════════════════════════════╩═══════════════════════╣" RESET "\n");
                 printf(CIANO "║" RESET "  DESCRIZIONE ATTIVITÀ:                               " CIANO "║" RESET "\n");
                 
-                // Testo dell'attività (troncato a 52 caratteri per non rompere il box)
                 printf(CIANO "║" RESET "  %-52.52s" CIANO "║" RESET "\n", 
                     assigned_card_text);
                 
@@ -327,7 +322,7 @@ void* client_listener(void* arg){
     struct sockaddr_in async_addr, async_addr_to_server;
     
     // -----------------------------------------------------------
-    // PREPARAZIONE SOCKET TCP (Per accogliere il Server)
+    // PREPARAZIONE SOCKET TCP 
     // -----------------------------------------------------------
     server_sd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&async_addr, 0, sizeof(async_addr)); 
@@ -358,7 +353,7 @@ void* client_listener(void* arg){
     close(server_sd);
 
     // -----------------------------------------------------------
-    // PREPARAZIONE SOCKET UDP (Per REVIEW peer-to-peer)
+    // PREPARAZIONE SOCKET UDP 
     // -----------------------------------------------------------
     udp_sd = socket(AF_INET, SOCK_DGRAM, 0);
     
@@ -370,12 +365,15 @@ void* client_listener(void* arg){
     
     // Si deve mettere in ascolto sulla porta client
     while (1) {
-        // pulizia del set di descrittore
+        // pulizia del set di descrittori
         FD_ZERO(&read_fds);
         
         // si aggiunge il socket UDP
         FD_SET(udp_sd, &read_fds);
+        // si aggiunge il socket TCP
         FD_SET(tcp_sd, &read_fds);
+
+        
         max_sd = (udp_sd > tcp_sd) ? udp_sd : tcp_sd;
 
         struct timeval timeout;
@@ -398,8 +396,8 @@ void* client_listener(void* arg){
                 review_received = 0;
                 is_review_complete = FALSE;
 
-                printf("[TIMEOUT] Tempo scaduto per la review! Nessuna risposta completa.\n");
-                printf("[HINT] Rilancia il comando SHOW_USR_LIST per ottenere la lista degl utenti aggiornati\n e successivamente il comando REVIEW_CARD per riprovare.\n");
+                printf(ROSSO "[TIMEOUT] Tempo scaduto per la review! Nessuna risposta completa." RESET "\n");
+                printf(GIALLO "[HINT] Rilancia il comando SHOW_USR_LIST per ottenere la lista degl utenti aggiornati\n e successivamente il comando REVIEW_CARD per riprovare." RESET "\n");
             }
             
         }
@@ -417,7 +415,6 @@ void* client_listener(void* arg){
                 printf(">>> ");
                 fflush(stdout);
             } else if (is_review_complete == FALSE && sscanf(buf, "OKAY_REVIEW %hd\n", &review_send_port) == 1) {
-                // TODO: SISTEMA I MUTEX
                 pthread_mutex_lock(&review_mutex);
                 if (has_already_voted(review_send_port) == TRUE || review_needed == 0) {
                     pthread_mutex_unlock(&review_mutex);
@@ -431,11 +428,8 @@ void* client_listener(void* arg){
                 
                 // si controlla se sono sufficienti
                 if (review_received == review_needed) {
-                    //printf("\r\033[K");
                     printf("[NOTIFICA] Review completata; adesso è possibile terminare la card\n");
-                    //printf(">>> ");
                     is_review_complete = TRUE;
-                    // review_needed = review_received = review_send_port = 0;
                 }
                 pthread_mutex_unlock(&review_mutex);
             }
