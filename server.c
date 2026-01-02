@@ -250,7 +250,7 @@ void* card_handler(void* arg){
                             buf[n] = '\0';
                             if (strncmp(buf, "ACK_CARD", 8) == 0) {
                                 printf(VERDE "[LOG] ACK ricevuto! Sposto card in DOING." RESET "\n");
-                                card_t* card_to_move = _lavagna_card_remove(card->id, 0);
+                                card_t* card_to_move = _remove_card(card->id, 0);
                                 if (card_to_move != NULL) {
                                     card_to_move->utente_assegnatario = lavagna.utenti_registrati[i].port;
                                     lavagna.utenti_registrati[i].id = card_to_move->id;
