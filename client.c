@@ -444,8 +444,6 @@ void* client_listener(void* arg){
 
             buf[n] = '\0';
 
-            int id; char testo[MAX_BUF_SIZE];
-
             if (strcmp(buf, "PING_USER") == 0) {
                 send(tcp_sd, "PONG_LAVAGNA", 13, 0);
             } else if (strncmp(buf, "ASYNC: HANDLE_CARD", 18) == 0){

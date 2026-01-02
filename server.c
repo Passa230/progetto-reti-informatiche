@@ -157,7 +157,7 @@ void* manage_request(void* arg){
 
             send(user_sd, &n_real_len, sizeof(n_real_len), 0);
             send(user_sd, lavagna_buf, real_len, 0);
-            
+
         } else if (strcmp(buf, "QUIT\n") == 0) {
             lavagna_quit(port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\n\0", 37 , 0);
@@ -167,30 +167,32 @@ void* manage_request(void* arg){
         } else if(strcmp(buf, "CARD_DONE\n") == 0){
             pthread_mutex_lock(&lavagna.sem_cards[1]);
             card_t* c = lavagna_trova_card_per_id(port);
-            if (c == NULL) {
-                pthread_mutex_unlock(&lavagna.sem_cards[1]);
-                continue;
-            }
-
-            c = lavagna_card_remove(c->id, 1);
-            if (c == NULL) {
-                pthread_mutex_unlock(&lavagna.sem_cards[1]);
-                printf("[LOG] Nessuna card trovata :-(");
-                continue;
-            }
-            uint16_t p = c->utente_assegnatario;
-
-            lavagna_move_card_to_head(c, 2);
+            id_t target_id = (c != NULL) ? c->id : -1;
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
 
-            pthread_mutex_lock(&lavagna.conn_user_sem);
-            for (int i = 0; i < lavagna.connected_users; i++) {
-                if (lavagna.utenti_registrati[i].port == p) {
-                    lavagna.utenti_registrati[i].id = 0;
-                    break;
+            if (target_id == -1) continue;
+            
+
+            c = lavagna_card_remove(c->id, 1);
+
+            
+            if (c != NULL)
+            {
+                uint16_t p = c->utente_assegnatario;
+
+                c->utente_assegnatario = 0;
+                lavagna_move_card_to_head(c, 2);
+
+                pthread_mutex_lock(&lavagna.conn_user_sem);
+                for (int i = 0; i < lavagna.connected_users; i++) {
+                    if (lavagna.utenti_registrati[i].port == p) {
+                        lavagna.utenti_registrati[i].id = 0;
+                        break;
+                    }
                 }
+                pthread_mutex_unlock(&lavagna.conn_user_sem);
+                
             }
-            pthread_mutex_unlock(&lavagna.conn_user_sem);
             
             printf(VERDE "[LOG] Spostata card in DONE" RESET "\n");
             stampa_lavagna();
@@ -248,12 +250,14 @@ void* card_handler(void* arg){
                             buf[n] = '\0';
                             if (strncmp(buf, "ACK_CARD", 8) == 0) {
                                 printf(VERDE "[LOG] ACK ricevuto! Sposto card in DOING." RESET "\n");
-                                lavagna_card_remove(card->id, 0);
-                                card->utente_assegnatario = lavagna.utenti_registrati[i].port;
-                                lavagna.utenti_registrati[i].id = card->id;
-                                lavagna_move_card_to_head(card, 1);
+                                card_t* card_to_move = lavagna_card_remove(card->id, 0);
+                                if (card_to_move != NULL) {
+                                    card_to_move->utente_assegnatario = lavagna.utenti_registrati[i].port;
+                                    lavagna.utenti_registrati[i].id = card_to_move->id;
+                                    lavagna_move_card_to_head(card, 1);
 
-                                stampa_lavagna();
+                                    stampa_lavagna();
+                                }
                                 break;
                             }
                             
@@ -271,6 +275,7 @@ void* card_handler(void* arg){
         // AGGIORNAMENTO DEI TIMER RELATIVI ALLA LAVAGNA
         time_t now = time(NULL);
         pthread_mutex_lock(&lavagna.conn_user_sem);
+
         for (int i = 0; i < lavagna.connected_users; i++) {
             user_t* u = &lavagna.utenti_registrati[i];
 
@@ -279,12 +284,13 @@ void* card_handler(void* arg){
             pthread_mutex_lock(&lavagna.sem_cards[1]);
             card_t* c = lavagna_trova_card_per_id(u->port);
             
-            
+            bool_t is_timeout = FALSE;
+            id_t id_to_remove = -1;
 
             // se l'utente non è mai stato pingato
             if (u->last_ping == 0) {
                 // Si controlla se dall'ultimo aggiornamento è passato 1.30min
-                if (difftime(now, c->ultimo_aggiornamento) >= PING_TIMEOUT) {
+                if (c != NULL && difftime(now, c->ultimo_aggiornamento) >= PING_TIMEOUT) {
                     // In caso affermativo si manda un ping
                     send(u->sock_id, "PING_USER", 10, 0);
                     u->last_ping = now;
@@ -296,30 +302,38 @@ void* card_handler(void* arg){
                 if (recv(u->sock_id, tmp, sizeof(tmp), MSG_DONTWAIT) > 0) {
                     if (strcmp(tmp, "PONG_LAVAGNA") == 0) {
                         u->last_ping = 0;
-                        c->ultimo_aggiornamento = now;
+                        if (c != NULL) c->ultimo_aggiornamento = now;
+                        
                         printf(VERDE "[LOG] PONG dall'utente alla porta %hd "RESET"\n", u->port);
                     }
                 } else if (difftime(now, u->last_ping) > 30){
                     printf(ROSSO "[ERRORE] TIMEOUT! L'utente %d non ha risposto. Sposto card in To Do"RESET"\n", u->port);
-                    c->utente_assegnatario = 0;
-                    pthread_mutex_unlock(&lavagna.conn_user_sem);
-                                        
-                    c = lavagna_card_remove(c->id, 1);
-
-                    pthread_mutex_unlock(&lavagna.sem_cards[1]);
-
-                    if (c != NULL) {
-                        lavagna_move_card_to_head(c, 0);
-                        stampa_lavagna();
-                    }                    
-
-                    pthread_mutex_lock(&lavagna.conn_user_sem);
-                    u->id = 0;
-                    u->last_ping = 0;
-                    continue;
+                    
+                    is_timeout = TRUE;
+                    if (c != NULL) id_to_remove = c->id;
                 }
             }     
             pthread_mutex_unlock(&lavagna.sem_cards[1]);
+
+            if (is_timeout == TRUE) {
+                printf(ROSSO "[ERRORE] TIMEOUT! L'utente %d non ha risposto. Sposto card in To Do"RESET"\n", u->port);
+
+                if (id_to_remove != -1) {
+                    card_t* removed = lavagna_card_remove(id_to_remove, 1);
+
+                    if (remove != NULL) {
+                        removed->utente_assegnatario = 0;
+                        lavagna_move_card_to_head(removed, 0);
+                        stampa_lavagna();
+                    }
+                    
+                }
+
+                u->id = 0;
+                u->last_ping = 0;
+                
+            }
+            
         }
         pthread_mutex_unlock(&lavagna.conn_user_sem);
     }

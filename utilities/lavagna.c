@@ -112,13 +112,20 @@ bool_t lavagna_init(){
     return TRUE;
 }
 
-
+/**
+ * @brief logica della funzione move_card_to_head
+ * @attention questa funzione non acquisisce lock di alcun tipo
+ */
+void _lavagna_move_card_to_head(card_t* card, colonna_t col){
+    if (card == NULL) return;
+    card->next_card = lavagna.cards[col];
+    lavagna.cards[col] = card;
+    card->colonna = col;
+}
 
 void lavagna_move_card_to_head(card_t* card, colonna_t col){
     pthread_mutex_lock(&lavagna.sem_cards[col]);
-    card_t* tmp = lavagna.cards[col];
-    lavagna.cards[col] = card;
-    card->next_card = tmp;
+    _lavagna_move_card_to_head(card, col);
     pthread_mutex_unlock(&lavagna.sem_cards[col]);
 }
 
@@ -143,21 +150,18 @@ bool_t lavagna_card_add(const char* testo_attivita, uint16_t utente_creatore){
     return TRUE;  
 }
 
+
 /**
  * @brief Funzione che permette di rimuovere una card passando l'ID e la lista
  * in cui si trova
+ * 
+ * @attention questa funzione non acquisce alcun lock.
  * 
  * @param id: identificativo della card che si vuole eliminare.
  * @param queue: riferimento al primo elemento della lista dalla quale si vuole eliminare l'elemento
  * @return la card rimossa se la funzione è terminata correttamente, NULL altrimenti.
  */
-card_t* lavagna_card_remove(id_t id, id_t list) {
-    if (list < 0 || list >= MAX_COLUMN) {
-        printf("ERRORE: L'inserimento deve essere fatto in una lista corretta\n");
-        return NULL;
-    }
-    
-    //pthread_mutex_lock(&lavagna.sem_cards[list]);
+card_t* _remove_card(id_t id, colonna_t list){
     card_t* curr = lavagna.cards[list];
     card_t* prev = NULL;
     while (curr != NULL) {
@@ -175,9 +179,26 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
         prev = curr;
         curr = curr->next_card;
     }
+}
 
-    //pthread_mutex_unlock(&lavagna.sem_cards[list]);
-    return NULL;
+/**
+ * @brief Funzione che permette di rimuovere una card passando l'ID e la lista
+ * in cui si trova
+ * 
+ * @param id: identificativo della card che si vuole eliminare.
+ * @param queue: riferimento al primo elemento della lista dalla quale si vuole eliminare l'elemento
+ * @return la card rimossa se la funzione è terminata correttamente, NULL altrimenti.
+ */
+card_t* lavagna_card_remove(id_t id, id_t list) {
+    if (list < 0 || list >= MAX_COLUMN) {
+        printf("ERRORE: L'inserimento deve essere fatto in una lista corretta\n");
+        return NULL;
+    }
+    
+    pthread_mutex_lock(&lavagna.sem_cards[list]);
+    card_t* card = _remove_card_unsafe(id, list);
+    pthread_mutex_unlock(&lavagna.sem_cards[list]);
+    return card;
 }
 
 
@@ -190,13 +211,51 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
  * @param dst colonna dove si vuole muovere la card
  */
 void lavagna_card_change(id_t id, id_t src, id_t dest){
+    if (src == dest) return; // Nessuno spostamento necessario
 
-    pthread_mutex_lock(&lavagna.sem_cards[src]);
-    card_t* card = lavagna_card_remove(id, src);
-    card_state_change(card, dest);    
-    lavagna_move_card_to_head(card, dest);
-    pthread_mutex_unlock(&lavagna.sem_cards[src]);
+    int first_lock = (src < dest) ? src:dest;
+    int second_lock = (src < dest) ? dest:src;
 
+    pthread_mutex_lock(&lavagna.sem_cards[first_lock]);
+    pthread_mutex_lock(&lavagna.sem_cards[second_lock]);
+
+    card_t* curr = lavagna.cards[src];
+    card_t* prev = NULL;
+    card_t* target = NULL;
+
+    while (curr != NULL) {
+        if (curr->id == id) {
+            target = curr;
+            if (prev == NULL) {
+                lavagna.cards[src] = curr->next_card;
+            } else {
+                prev->next_card = curr->next_card;
+            }
+            break;
+        }
+        prev = curr;
+        curr = curr->next_card;
+    }
+
+    if (target != NULL) {
+
+        target->colonna = (colonna_t)dest;
+        target->ultimo_aggiornamento = time(NULL);
+
+        if (dest == 0) {
+            target->utente_assegnatario = 0;
+        }
+
+        target->next_card = lavagna.cards[dest];
+        lavagna.cards[dest] = target;
+        
+        printf(VERDE "[LOG] Card #%d spostata da %d a %d" RESET "\n", id, src, dest);
+    } else {
+        printf(ROSSO "[ERRORE] Card #%d non trovata nella colonna %d" RESET "\n", id, src);
+    }
+
+    pthread_mutex_unlock(&lavagna.sem_cards[second_lock]);
+    pthread_mutex_unlock(&lavagna.sem_cards[first_lock]);
 }
 
 
@@ -350,8 +409,8 @@ bool_t lavagna_hello(uint16_t port){
 bool_t lavagna_quit(uint16_t port){
     pthread_mutex_lock(&lavagna.conn_user_sem);
 
-    int i, found = -1;
-    for (i = 0; i < lavagna.connected_users; i++) {
+    int found = -1;
+    for (int i = 0; i < lavagna.connected_users; i++) {
         if (lavagna.utenti_registrati[i].port == port) {
             found = i;
             break;
@@ -359,41 +418,48 @@ bool_t lavagna_quit(uint16_t port){
     }    
 
     if (found != -1) {
-        for (i = found; i < lavagna.connected_users - 1; i++) {
+        close(lavagna.utenti_registrati[found].sock_id);
+
+        for (int i = found; i < lavagna.connected_users - 1; i++) {
             lavagna.utenti_registrati[i] = lavagna.utenti_registrati[i + 1];
         }
 
         lavagna.connected_users--;
         lavagna.utenti_registrati[lavagna.connected_users].port = 0;
+        printf(GIALLO "[LOG] Utente %d rimosso correttamente." RESET "\n", port);
     }
-    
-
     pthread_mutex_unlock(&lavagna.conn_user_sem);
 
     // verifica sulla presenza di card doing con sincronizzazione corretta
+    pthread_mutex_lock(&lavagna.sem_cards[0]); 
     pthread_mutex_lock(&lavagna.sem_cards[1]);
-    card_t* list = lavagna.cards[1];
+    card_t* curr = lavagna.cards[1];
+    card_t* prev = NULL;
 
-    while (list != NULL) {
-        if (list->utente_assegnatario == port) {
-            card_t* card_to_move = lavagna_card_remove(list->id, 1);
+    while (curr != NULL) {
+        if (curr->utente_assegnatario == port) {
+            card_t* card_to_move = curr;
 
-            pthread_mutex_unlock(&lavagna.sem_cards[1]);
+            if (prev == NULL) {
+                lavagna.cards[1] = curr->next_card;
+            } else {
+                prev->next_card = curr->next_card;
+            }           
 
             card_to_move->utente_assegnatario = 0;
-            lavagna_move_card_to_head(card_to_move, 0);
+            card_to_move->ultimo_aggiornamento = time(NULL);
+            card_to_move->next_card = lavagna.cards[0];
+            lavagna.cards[0] = card_to_move;
 
-            pthread_mutex_lock(&lavagna.sem_cards[1]);
-
-            list = lavagna.cards[1];
-        } else {
-            list = list->next_card;
-        }
+            printf(VERDE "[LOG] Card #%d riportata in TO DO" RESET "\n", card_to_move->id);
+            break;
+        } 
+        prev = curr;
+        curr = curr->next_card;
     }
 
-    
-
     pthread_mutex_unlock(&lavagna.sem_cards[1]);
+    pthread_mutex_unlock(&lavagna.sem_cards[0]);
     return TRUE;
 }
 
