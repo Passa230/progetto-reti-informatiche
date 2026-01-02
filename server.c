@@ -324,7 +324,7 @@ void* card_handler(void* arg){
                 if (id_to_remove != -1) {
                     card_t* removed = lavagna_card_remove(id_to_remove, 1);
 
-                    if (remove != NULL) {
+                    if (removed != NULL) {
                         removed->utente_assegnatario = 0;
                         lavagna_move_card_to_head(removed, 0);
                         stampa_lavagna();
