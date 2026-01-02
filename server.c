@@ -126,26 +126,24 @@ void* manage_request(void* arg){
             lavagna_card_add(buf, port);
             printf(VERDE "[LOG] Creata card con testo %s"RESET"\n", buf);
             send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
-            //stampa_lavagna();
+            stampa_lavagna();
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
             int written = lavagna_user_list(out_buf, MAX_SBUF_SIZE);
             uint32_t user_len = (uint32_t)(strlen(out_buf) + 1);
             uint32_t n_user_len = htonl(user_len);
 
             send(user_sd, &n_user_len, sizeof(n_user_len), 0);
-            // CORREZIONE 1: Invia solo i byte della stringa + terminatore, non 1023 byte
+            // Manda la lunghezza della stringa
             send(user_sd, out_buf, user_len, 0); 
 
             uint16_t user_buf[MAX_USER];
             memset(user_buf, 0, sizeof(user_buf));
             user_len = lavagna_user_list_to_vec(user_buf);
             
-            // CORREZIONE 2: Converti ogni porta in Network Order (htons)
             for(int i = 0; i < user_len; i++) {
                 user_buf[i] = htons(user_buf[i]);
             }
 
-            // CORREZIONE 3: Converti la lunghezza in Network Order (htonl)
             int user_len_net = htonl(user_len);
             
             send(user_sd, &user_len_net, sizeof(user_len_net), 0);
@@ -154,7 +152,12 @@ void* manage_request(void* arg){
         } else if (strcmp(buf, "SHOW_LAVAGNA\n") == 0) {
             char lavagna_buf[MAX_SBUF_SIZE];
             lavagna_stampa(lavagna_buf, MAX_SBUF_SIZE);
-            send(user_sd, lavagna_buf, MAX_SBUF_SIZE-1, 0);
+            uint32_t real_len = (uint32_t)(strlen(lavagna_buf) + 1);
+            uint32_t n_real_len = htonl(real_len);
+
+            send(user_sd, &n_real_len, sizeof(n_real_len), 0);
+            send(user_sd, lavagna_buf, real_len, 0);
+            
         } else if (strcmp(buf, "QUIT\n") == 0) {
             lavagna_quit(port);
             send(user_sd, "CANCELLAZIONE AVVENUTA CON SUCCESSO\n\0", 37 , 0);
@@ -190,10 +193,9 @@ void* manage_request(void* arg){
             pthread_mutex_unlock(&lavagna.conn_user_sem);
             
             printf(VERDE "[LOG] Spostata card in DONE" RESET "\n");
-            //stampa_lavagna();
+            stampa_lavagna();
         } else {
             printf("[LOG] Il comando non esiste\n");
-            //send(user_sd, "ERRORE: Comando non valido!\n\0", 29 , 0);
         }
 
         memset(buf, 0, sizeof(buf));
@@ -224,6 +226,8 @@ void* card_handler(void* arg){
                 for (int i = 0; i < lavagna.connected_users; i++) {
                     if (lavagna.utenti_registrati[i].id == 0) {
 
+                        // Va inviata anche la lista degli utenti disponibili e il loro numero
+
                         snprintf(msg, sizeof(msg), "ASYNC: HANDLE_CARD %d %s\n", 
                                         card->id, card->testo_attivita);
                         send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
@@ -249,7 +253,7 @@ void* card_handler(void* arg){
                                 lavagna.utenti_registrati[i].id = card->id;
                                 lavagna_move_card_to_head(card, 1);
 
-                                //stampa_lavagna();
+                                stampa_lavagna();
                                 break;
                             }
                             
@@ -306,7 +310,7 @@ void* card_handler(void* arg){
 
                     if (c != NULL) {
                         lavagna_move_card_to_head(c, 0);
-                        //stampa_lavagna();
+                        stampa_lavagna();
                     }                    
 
                     pthread_mutex_lock(&lavagna.conn_user_sem);
@@ -322,9 +326,11 @@ void* card_handler(void* arg){
 }
 
 void stampa_lavagna(){
-    char* text = (char*) malloc(MAX_SBUF_SIZE);
-    lavagna_stampa(text, MAX_SBUF_SIZE);
-    printf("%s", text);
-    free(text);
-    text = NULL;
+    // Utilizzando static il buffer viene allocato una sola volta
+    // all'inizio del programma e riutilizzato ad ogni chiamata
+    static char log_buf[MAX_SBUF_SIZE];
+    memset(log_buf, 0, MAX_SBUF_SIZE);
+    
+    lavagna_stampa(log_buf, MAX_SBUF_SIZE);
+    printf("%s", log_buf);
 }

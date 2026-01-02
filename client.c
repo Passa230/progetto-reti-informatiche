@@ -224,7 +224,9 @@ int main(int argc, char **argv){
         } else if (strcmp(in_buf, "SHOW_LAVAGNA\n") == 0) {
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
             if (size <= 0) break; 
-            size = recv(sd, lavagna_buf, MAX_SBUF_SIZE, 0);
+            uint32_t lavagna_size;
+            size = recv(sd, &lavagna_size, sizeof(uint32_t), 0);
+            size = recv(sd, lavagna_buf, lavagna_size, 0);
             printf("%s\n", lavagna_buf);
         } else if(strcmp(in_buf, "QUIT\n") == 0){
             size = send(sd, in_buf, strlen(in_buf) + 1, 0);
@@ -240,7 +242,7 @@ int main(int argc, char **argv){
 
             pthread_mutex_lock(&assigned_card_mutex);
             assigned_card_id = -1;
-            memset(assigned_card_text, 0, strlen(assigned_card_text));
+            memset(assigned_card_text, 0, sizeof(assigned_card_text));
             pthread_mutex_unlock(&assigned_card_mutex);
 
         } else if (strncmp(in_buf, "OKAY_REVIEW", 11) == 0){
@@ -302,13 +304,6 @@ int main(int argc, char **argv){
     
 }
 
-
-/**
- * @todo capire come gestire ste cazzo di notifiche
- * @todo aggiungere due variabili globali xhe contengono testo e id della card assegnata
- * @todo creare comando TODO_CARD che permette di visualizzare la card assegnata
- * @todo usare variabili per utente
- */
 void* client_listener(void* arg){
     uint16_t port = atoi((char *)arg), ret;
     socklen_t len;
