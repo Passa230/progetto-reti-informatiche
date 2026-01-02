@@ -135,4 +135,17 @@ card_t* lavagna_trova_card_per_id(int id);
 
 int lavagna_user_list_to_vec(uint16_t* buf);
 
+
+/**
+ * @brief Funzione che permette di rimuovere una card passando l'ID e la lista
+ * in cui si trova
+ * 
+ * @attention questa funzione non acquisce alcun lock.
+ * 
+ * @param id: identificativo della card che si vuole eliminare.
+ * @param queue: riferimento al primo elemento della lista dalla quale si vuole eliminare l'elemento
+ * @return la card rimossa se la funzione è terminata correttamente, NULL altrimenti.
+ */
+card_t* _remove_card(id_t id, colonna_t list);
+
 #endif /* LAVAGNA_H */
