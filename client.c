@@ -251,7 +251,12 @@ int main(int argc, char **argv){
             pthread_mutex_lock(&assigned_card_mutex);
             assigned_card_id = -1;
             memset(assigned_card_text, 0, sizeof(assigned_card_text));
+            review_needed = review_received = 0;
+            is_review_complete = FALSE;
+            review_start_time = 0;
             pthread_mutex_unlock(&assigned_card_mutex);
+
+            printf(VERDE "[SUCCESS] Card completata. A breve potresti ricevere una nuova card\n" RESET);
 
         } else if (strncmp(in_buf, "OKAY_REVIEW", 11) == 0){
             sscanf(in_buf, "OKAY_REVIEW %hd\n", &review_port);
