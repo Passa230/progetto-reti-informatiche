@@ -179,6 +179,7 @@ card_t* _remove_card(id_t id, colonna_t list){
         prev = curr;
         curr = curr->next_card;
     }
+    return NULL;
 }
 
 /**
@@ -196,7 +197,7 @@ card_t* lavagna_card_remove(id_t id, id_t list) {
     }
     
     pthread_mutex_lock(&lavagna.sem_cards[list]);
-    card_t* card = _remove_card_unsafe(id, list);
+    card_t* card = _remove_card(id, list);
     pthread_mutex_unlock(&lavagna.sem_cards[list]);
     return card;
 }
