@@ -256,7 +256,7 @@ void* card_handler(void* arg){
                                     lavagna.utenti_registrati[i].id = card_to_move->id;
                                     lavagna_move_card_to_head(card, 1);
 
-                                    stampa_lavagna();
+                                    //stampa_lavagna();
                                 }
                                 break;
                             }
