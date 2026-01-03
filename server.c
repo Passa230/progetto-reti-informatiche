@@ -251,7 +251,7 @@ void* card_handler(void* arg){
                         if (peer_count > 0) {
                             send(lavagna.utenti_registrati[i].sock_id, peer_ports, peer_count * sizeof(uint16_t), 0);
                         }
-                        
+
                         fd_set read_fds;
                         struct timeval timeout;  
                         FD_ZERO(&read_fds);

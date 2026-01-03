@@ -443,18 +443,21 @@ void* client_listener(void* arg){
         }
         
         if (FD_ISSET(tcp_sd, &read_fds)) {
+            int idx = 0;
+            char c;
             ssize_t n = recv(tcp_sd, buf, MAX_NOT_BUF_SIZE - 1, 0);
-    
-            if (n <= 0) {
-                // Il server ha chiuso la connessione (o crash)
-                printf("[ERRORE] Connessione notifiche persa col server.\n");
-                close(tcp_sd);
-                close(udp_sd);
-                // Usciamo dal thread o gestiamo la chiusura del client
-                pthread_exit(NULL); 
+            while (idx < sizeof(buf) - 1) {
+                int n = recv(tcp_sd, &c, 1, 0);
+                if (n <= 0) {
+                    close(tcp_sd); 
+                    close(udp_sd); 
+                    pthread_exit(NULL); // Server morto o connessione chiusa
+                }
+                buf[idx++] = c;
+                if (c == '\n') break; // Trovato fine comando!
             }
+            buf[idx] = '\0';
 
-            buf[n] = '\0';
 
             if (strcmp(buf, "PING_USER") == 0) {
                 send(tcp_sd, "PONG_LAVAGNA", 13, 0);
