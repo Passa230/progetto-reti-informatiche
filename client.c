@@ -36,7 +36,7 @@ bool_t has_already_voted(uint16_t port){
 
 
 void stampa_menu(){
-    printf("\n" GIALLO "=================== " RESET GRASSETTO "KANBAN BOARD" RESET GIALLO " ===================" RESET "\n");
+    printf("\n" GIALLO "==================== " RESET GRASSETTO "KANBAN BOARD" RESET GIALLO " ====================" RESET "\n");
 
     printf(VERDE "  > %-15s" RESET " : %s\n", "CARD_CREATE",        "Crea una nuova card");
     printf(VERDE "  > %-15s" RESET " : %s\n", "SHOW_USR_LIST",      "Mostra lista utenti e le loro porte");
@@ -48,7 +48,7 @@ void stampa_menu(){
     printf(VERDE "  > %-15s" RESET " : %s\n", "CLEAR",              "Pulisci lo schermo"); 
     printf(VERDE "  > %-15s" RESET " : %s\n", "QUIT",               "Chiudi il client ed esci");
 
-    printf(GIALLO "======================================================" RESET "\n\n");
+    printf(GIALLO "========================================================" RESET "\n\n");
 }
 
 
