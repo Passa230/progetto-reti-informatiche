@@ -128,7 +128,8 @@ void* manage_request(void* arg){
             send(user_sd, "CARD CREATA CON SUCCESSO!\n", 27, 0);
             stampa_lavagna();
         } else if (strcmp(buf, "SHOW_USR_LIST\n") == 0) {
-            int written = lavagna_user_list(out_buf, MAX_SBUF_SIZE);
+            lavagna_user_list(out_buf, MAX_SBUF_SIZE);
+            
             uint32_t user_len = (uint32_t)(strlen(out_buf) + 1);
             uint32_t n_user_len = htonl(user_len);
 
@@ -214,7 +215,7 @@ void* manage_request(void* arg){
  * @todo  
  */
 void* card_handler(void* arg){
-    char msg[MAX_BUF_SIZE], buf[MAX_BUF_SIZE];
+    char msg[MAX_NOT_BUF_SIZE], buf[MAX_BUF_SIZE];
     
 
     memset(msg, 0, sizeof(msg));
