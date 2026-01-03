@@ -454,7 +454,7 @@ void* client_listener(void* arg){
                     pthread_exit(NULL); // Server morto o connessione chiusa
                 }
                 buf[idx++] = c;
-                if (c == '\n') break; // Trovato fine comando!
+                if (c == '\n' || c == '\0') break;
             }
             buf[idx] = '\0';
 
