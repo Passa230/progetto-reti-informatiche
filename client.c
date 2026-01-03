@@ -445,7 +445,7 @@ void* client_listener(void* arg){
         if (FD_ISSET(tcp_sd, &read_fds)) {
             int idx = 0;
             char c;
-            ssize_t n = recv(tcp_sd, buf, MAX_NOT_BUF_SIZE - 1, 0);
+            //ssize_t n = recv(tcp_sd, buf, MAX_NOT_BUF_SIZE - 1, 0);
             while (idx < sizeof(buf) - 1) {
                 int n = recv(tcp_sd, &c, 1, 0);
                 if (n <= 0) {
