@@ -6,10 +6,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <lavagna.h>
 #include <stdlib.h>
-#include <include/color.h>
 #include <unistd.h>
+#include <include/lavagna.h>
+#include <include/color.h>
+
+
 
 
 lavagna_t lavagna;

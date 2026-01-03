@@ -2,13 +2,11 @@ CC = gcc
 CFLAGS = -Wall -g -I. -Ilib -Iutilities
 LDFLAGS = -pthread
 
-# Oggetti comuni (librerie)
-OBJ_LIB = lib/generic.o
+SRC_DIR = src
 
-# Oggetti specifici per il server
-OBJ_SERVER_UTILS = utilities/lavagna.o 
+OBJ_LIB = $(SRC_DIR)/generic.o
+OBJ_SERVER_UTILS = $(SRC_DIR)/lavagna.o 
 
-# Target principale
 all: server client
 
 # Compilazione del server
