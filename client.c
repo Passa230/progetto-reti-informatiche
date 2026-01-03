@@ -459,7 +459,7 @@ void* client_listener(void* arg){
             buf[idx] = '\0';
 
 
-            if (strcmp(buf, "PING_USER") == 0) {
+            if (strncmp(buf, "PING_USER", 9) == 0) {
                 send(tcp_sd, "PONG_LAVAGNA", 13, 0);
             } else if (strncmp(buf, "ASYNC: HANDLE_CARD", 18) == 0){
 
