@@ -211,8 +211,6 @@ void* manage_request(void* arg){
  * @brief thread per la gestione delle card. Ogni k secondi il thread controlla se è possibile assegnare
  * delle nuove card a qualche utente, inoltre controlla se il tempo passato dall'ultimo assegnamento di una
  * particolare card supera un certo limite superiore e in tal caso manda un PING al client
- * @todo aggiungere altri messaggi di log se necessario
- * @todo  
  */
 void* card_handler(void* arg){
     char msg[MAX_NOT_BUF_SIZE], buf[MAX_BUF_SIZE];
