@@ -1,5 +1,5 @@
 
-#include "generic.h"
+#include <include/generic.h>
 #include <time.h>
 #include <stdint.h>
 
