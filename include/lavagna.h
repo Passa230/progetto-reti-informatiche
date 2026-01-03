@@ -1,7 +1,7 @@
 #ifndef LAVAGNA_H
 #define LAVAGNA_H
 
-#include <structure.h>
+#include <include/structure.h>
 #include <generic.h>
 
 extern lavagna_t lavagna;
