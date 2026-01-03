@@ -230,12 +230,28 @@ void* card_handler(void* arg){
                 for (int i = 0; i < lavagna.connected_users; i++) {
                     if (lavagna.utenti_registrati[i].id == 0) {
 
-                        // Va inviata anche la lista degli utenti disponibili e il loro numero
+                        uint16_t peer_ports[MAX_USER];
+                        int peer_count = 0;
+                        int current_user_port = lavagna.utenti_registrati[i].port;
+                        for (int k = 0; k < lavagna.connected_users; k++) {
+                            if (lavagna.utenti_registrati[k].port != 0 && 
+                                lavagna.utenti_registrati[k].port != current_user_port) {
+                                
+                                peer_ports[peer_count] = htons(lavagna.utenti_registrati[k].port);
+                                peer_count++;
+                            }
+                        }
 
                         snprintf(msg, sizeof(msg), "ASYNC: HANDLE_CARD %d %s\n", 
                                         card->id, card->testo_attivita);
                         send(lavagna.utenti_registrati[i].sock_id, msg, strlen(msg) + 1, 0);
 
+                        uint32_t net_peer_count = htonl(peer_count);
+                        send(lavagna.utenti_registrati[i].sock_id, &net_peer_count, sizeof(net_peer_count), 0);
+                        if (peer_count > 0) {
+                            send(lavagna.utenti_registrati[i].sock_id, peer_ports, peer_count * sizeof(uint16_t), 0);
+                        }
+                        
                         fd_set read_fds;
                         struct timeval timeout;  
                         FD_ZERO(&read_fds);
@@ -257,10 +273,6 @@ void* card_handler(void* arg){
                                     card_to_move->utente_assegnatario = lavagna.utenti_registrati[i].port;
                                     lavagna.utenti_registrati[i].id = card_to_move->id;
                                     lavagna_move_card_to_head(card, 1);
-
-                                    /*pthread_mutex_unlock(&lavagna.sem_cards[0]);
-                                    stampa_lavagna();
-                                    pthread_mutex_lock(&lavagna.sem_cards[0]);*/
 
                                 }
                                 break;

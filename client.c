@@ -459,7 +459,6 @@ void* client_listener(void* arg){
             if (strcmp(buf, "PING_USER") == 0) {
                 send(tcp_sd, "PONG_LAVAGNA", 13, 0);
             } else if (strncmp(buf, "ASYNC: HANDLE_CARD", 18) == 0){
-                send(tcp_sd, "ACK_CARD\n", 9, 0);
 
                 char *ptr_msg = buf + 19; 
                 char *text_start;
@@ -467,8 +466,26 @@ void* client_listener(void* arg){
                 id_t id = (id_t)strtoul(ptr_msg, &text_start, 10);
                 
                 if (*text_start == ' ') text_start++;
+                
+                uint32_t net_peer_count;
+                int r = recv(tcp_sd, &net_peer_count, sizeof(uint32_t), 0);
+                int peer_count = ntohl(net_peer_count);
 
-                snprintf(async_buffer, sizeof(async_buffer), "Card assegnata #%d: %s\n", id, text_start);
+                uint16_t raw_ports[MAX_USER];
+                if (peer_count > 0) {
+                    // Attendiamo esattamente i byte necessari
+                    int expected_bytes = peer_count * sizeof(uint16_t);
+                    int total_read = 0;
+                    while(total_read < expected_bytes) {
+                        r = recv(tcp_sd, (char*)raw_ports + total_read, expected_bytes - total_read, 0);
+                        if (r <= 0) break; // Gestione errore disconnessione
+                        total_read += r;
+                    }
+                }
+
+                send(tcp_sd, "ACK_CARD\n", 9, 0);
+
+                snprintf(async_buffer, sizeof(async_buffer), "Card assegnata #%d: %s (Peer per review: %d)\n", id, text_start, peer_count);
                 async_buffer[strcspn(async_buffer, "\n")] = 0;
                 
                 printf("[NOTIFICA ASINCRONA] %s\n", async_buffer);
