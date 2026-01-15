@@ -7,15 +7,15 @@ SRC_DIR = src
 OBJ_LIB = $(SRC_DIR)/generic.o
 OBJ_SERVER_UTILS = $(SRC_DIR)/lavagna.o 
 
-all: server client
+all: lavagna utente
 
-# Compilazione del server
-server: server.o $(OBJ_LIB) $(OBJ_SERVER_UTILS)
-	$(CC) $(CFLAGS) -o server server.o $(OBJ_LIB) $(OBJ_SERVER_UTILS) $(LDFLAGS)
+# Compilazione del lavagna
+lavagna: lavagna.o $(OBJ_LIB) $(OBJ_SERVER_UTILS)
+	$(CC) $(CFLAGS) -o lavagna lavagna.o $(OBJ_LIB) $(OBJ_SERVER_UTILS) $(LDFLAGS)
 
-# Compilazione del client
-client: client.o $(OBJ_LIB)
-	$(CC) $(CFLAGS) -o client client.o $(OBJ_LIB) $(LDFLAGS)
+# Compilazione del utente
+utente: utente.o $(OBJ_LIB)
+	$(CC) $(CFLAGS) -o utente utente.o $(OBJ_LIB) $(LDFLAGS)
 
 # Regola generica per la creazione dei file oggetto
 %.o: %.c
@@ -23,5 +23,5 @@ client: client.o $(OBJ_LIB)
 
 # Pulizia dei file generati
 clean:
-	rm -f server client *.o lib/*.o utilities/*.o
+	rm -f lavagna utente *.o lib/*.o utilities/*.o
 .PHONY: all clean

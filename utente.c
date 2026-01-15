@@ -62,6 +62,8 @@ void stampa_menu(){
 void* client_listener(void* arg);
 
 int main(int argc, char **argv){
+
+    // CAPIRE COME FUNZIONA: 
     if (argc < 2) {
         printf("Usage: %s <port>\n", argv[0]);
         return 1;
@@ -78,6 +80,7 @@ int main(int argc, char **argv){
     char in_buf[MAX_BUF_SIZE];
     ssize_t size;
 
+    // Se l'utente si prova a registrare a una porta non corretta, fermarlo
     if (atoi(argv[1]) < 5678) {
         printf(ROSSO "[ERRORE] Non è possibile registrarsi a questa porta" RESET "\n");        
         return 0;
@@ -86,6 +89,8 @@ int main(int argc, char **argv){
     pthread_mutex_init(&review_mutex, NULL);
     pthread_mutex_init(&assigned_card_mutex, NULL);
     pthread_t t_listener;
+
+    // si crea il thread listener
     pthread_create(&t_listener, NULL, client_listener, argv[1]);
 
 
@@ -96,17 +101,24 @@ int main(int argc, char **argv){
     sv_addr.sin_port = htons(5678);
     inet_pton(AF_INET, "127.0.0.1", &sv_addr.sin_addr);
     
+    // tenativo di connessione al server
     ret = connect(sd, (struct sockaddr*)&sv_addr, sizeof(sv_addr));
+
+    // in caso ci sia un errore chiudere il socket e terminare
     if (ret < 0) {
         printf(ROSSO "[ERRORE] Non è stato possibile connettersi al server" RESET "\n");
         close(sd);
         return 0;
     }
     
+    // mandare la porta a cui ci si vuole registrare --> corrisponde alla fase di HELLO
     size = send(sd, argv[1], strlen(argv[1]) + 1, 0);    
     // printf("Qui ci arrivo\n");
     
+    // si attende il messaggio di conferma dal server
     size = recv(sd, buf, MAX_BUF_SIZE-1, 0);
+
+    // un errore in questa fase deve essere interpretato come terminazione del client
     if (size <= 0) {
         printf(ROSSO "[ERRORE] di ricezione o connessione chiusa"RESET"\n");
         close(sd);
@@ -475,6 +487,10 @@ void* client_listener(void* arg){
                 int peer_count = ntohl(net_peer_count);
 
                 uint16_t raw_ports[MAX_USER];
+
+                // La necessità di questa struttura è data dal fatto che la funzione per mandare le porte può leggere troppi
+                // byte, andando a prelevare anche comandi non destinati a lui, in questo modo riusciamo a leggere solo il numero necessario
+                // di porte degli utenti 
                 if (peer_count > 0) {
                     // Attendiamo esattamente i byte necessari
                     int expected_bytes = peer_count * sizeof(uint16_t);

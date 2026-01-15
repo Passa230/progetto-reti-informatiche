@@ -122,7 +122,7 @@ int lavagna_user_list(char* buf, size_t max_len);
  * @param id identificatore dell'utente a cui è assegnata la carte
  * @return un puntatore alla card o NULL se non vi è alcuna corrispondenza
  */
-card_t* lavagna_trova_card_per_id(int id);
+card_t* lavagna_trova_card_per_id(uint16_t id);
 
 
 /**

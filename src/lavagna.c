@@ -17,10 +17,6 @@
 lavagna_t lavagna;
 
 
-// FUNZIONI UTILITA CARD
-// FUNZIONI UTILITA PER LA LAVAGNA
-
-
 /**
  * @brief funzione che permette di comparare le porte degli utenti in modo
  * da riordinarli
@@ -44,7 +40,7 @@ card_t * card_create(const char testo_attivita[], uint16_t utente_creatore) {
     if (nuova_card == NULL) {
         return NULL; // Gestione errore allocazione memoria
     }
-    nuova_card->id = get_new_id(); // Da decidere: utilizzare variabile globale o meno ?
+    nuova_card->id = get_new_id(); 
     nuova_card->colonna = TO_DO;
     strncpy(nuova_card->testo_attivita, testo_attivita, sizeof(nuova_card->testo_attivita));
     nuova_card->testo_attivita[sizeof(nuova_card->testo_attivita) - 1] = '\0'; 
@@ -174,8 +170,6 @@ card_t* _remove_card(id_t id, colonna_t list){
             } else {
                 prev->next_card = curr->next_card;
             }
-            //card_delete(&curr);
-            //pthread_mutex_unlock(&lavagna.sem_cards[list]);
             return curr;
         }
         prev = curr;
@@ -522,7 +516,6 @@ int lavagna_user_list(char* buf, size_t max_len){
                 colore_stato = VERDE;
                 snprintf(stato, sizeof(stato), "Libero (Pronto)");
             } else {
-                // Utente che ha una card in "Doing" [cite: 37]
                 colore_stato = GIALLO;
                 snprintf(stato, sizeof(stato), "Lavorando su Card #%d", lavagna.utenti_registrati[i].id);
             }
@@ -555,8 +548,7 @@ int lavagna_user_list(char* buf, size_t max_len){
     return (int)used;
 }
 
-// TODO --> Sostituire int ID con uint16_t id
-card_t* lavagna_trova_card_per_id(int id){
+card_t* lavagna_trova_card_per_id(uint16_t id){
     card_t* list = lavagna.cards[1];
     while (list != NULL) {
         if (list->utente_assegnatario == id) {
